@@ -265,6 +265,10 @@ const COLORS = {
 // Add animation state tracking
 let animationStates = new Map(); // Track animation state for each connection
 let lastSignalValues = new Map(); // Track last signal values for each connection
+let animationGroups = []; // Track groups of connections that need to be animated
+let currentGroupIndex = 0; // Track current animation group
+let currentConnectionIndex = 0; // Track current connection within a group
+let isFirstGroupComplete = false; // Track if first group has completed
 
 function preload() {
     // p5.js preload function - runs first
@@ -514,7 +518,8 @@ function drawConnection(conn) {
     if (!animationStates.has(connId)) {
         animationStates.set(connId, {
             progress: 0,
-            isAnimating: false
+            isAnimating: false,
+            signalValue: signalValue
         });
         lastSignalValues.set(connId, signalValue);
     }
@@ -527,9 +532,12 @@ function drawConnection(conn) {
     );
 
     if (shouldAnimate) {
-        animationStates.get(connId).isAnimating = true;
-        animationStates.get(connId).progress = 0;
-        lastSignalValues.set(connId, signalValue);
+        // Find the group this connection belongs to
+        const groupIndex = findConnectionGroup(conn);
+        if (groupIndex !== -1 && !animationGroups[groupIndex].includes(connId)) {
+            animationGroups[groupIndex].push(connId);
+            lastSignalValues.set(connId, signalValue);
+        }
     }
 
     // Set base line style
@@ -579,6 +587,28 @@ function drawConnection(conn) {
     }
 }
 
+function findConnectionGroup(conn) {
+    // Find if this is an input connection
+    const isInputConnection = inputs.some(input =>
+        abs(conn.start.x - input.x) < 1 && abs(conn.start.y - input.y) < 1
+    );
+
+    if (isInputConnection) {
+        return 0; // Input connections are in first group
+    }
+
+    // Find if this is a gate output connection
+    const isGateOutput = gates.some(gate =>
+        abs(conn.start.x - (gate.x + 30)) < 1 && abs(conn.start.y - gate.y) < 30
+    );
+
+    if (isGateOutput) {
+        return 1; // Gate output connections are in second group
+    }
+
+    return -1; // Unknown connection type
+}
+
 function drawBorderFill(conn, bendX, bendY, signalValue, connId) {
     const animationSpeed = 0.015;
     const state = animationStates.get(connId);
@@ -587,6 +617,47 @@ function drawBorderFill(conn, bendX, bendY, signalValue, connId) {
     if (state.progress >= 1) {
         state.isAnimating = false;
         state.progress = 1;
+
+        const currentGroup = animationGroups[currentGroupIndex];
+
+        if (!isFirstGroupComplete) {
+            // For first group (inputs), check if all connections are done
+            const allDone = currentGroup.every(id =>
+                animationStates.get(id).progress >= 1
+            );
+
+            if (allDone) {
+                isFirstGroupComplete = true;
+                currentGroupIndex++;
+                currentConnectionIndex = 0;
+
+                // Start first connection of next group (gate outputs)
+                if (currentGroupIndex < animationGroups.length &&
+                    animationGroups[currentGroupIndex].length > 0) {
+                    const nextConnId = animationGroups[currentGroupIndex][currentConnectionIndex];
+                    animationStates.get(nextConnId).isAnimating = true;
+                }
+            }
+        } else {
+            // For subsequent groups, move to next connection
+            currentConnectionIndex++;
+
+            if (currentConnectionIndex < currentGroup.length) {
+                // Start next connection in current group
+                const nextConnId = currentGroup[currentConnectionIndex];
+                animationStates.get(nextConnId).isAnimating = true;
+            } else {
+                // Move to next group if current group is complete
+                currentGroupIndex++;
+                currentConnectionIndex = 0;
+
+                if (currentGroupIndex < animationGroups.length &&
+                    animationGroups[currentGroupIndex].length > 0) {
+                    const nextConnId = animationGroups[currentGroupIndex][currentConnectionIndex];
+                    animationStates.get(nextConnId).isAnimating = true;
+                }
+            }
+        }
     }
 
     push();
@@ -845,6 +916,43 @@ function mousePressed() {
 
                 // Only update outputs in play mode
                 if (isPlayMode) {
+                    // Clear animation states
+                    animationStates.clear();
+                    lastSignalValues.clear();
+                    animationGroups = [];
+                    currentGroupIndex = 0;
+                    currentConnectionIndex = 0;
+                    isFirstGroupComplete = false;
+
+                    // Create groups for different connection types
+                    animationGroups[0] = []; // Input connections
+                    animationGroups[1] = []; // Gate output connections
+
+                    // Organize connections into groups
+                    connections.forEach(conn => {
+                        const connId = `${conn.start.x},${conn.start.y}-${conn.end.x},${conn.end.y}`;
+                        const groupIndex = findConnectionGroup(conn);
+
+                        if (groupIndex !== -1) {
+                            animationGroups[groupIndex].push(connId);
+
+                            // Initialize animation state
+                            animationStates.set(connId, {
+                                progress: 0,
+                                isAnimating: false,
+                                signalValue: getInputValue(conn.start)
+                            });
+                            lastSignalValues.set(connId, getInputValue(conn.start));
+                        }
+                    });
+
+                    // Start first group (input connections)
+                    if (animationGroups[0].length > 0) {
+                        animationGroups[0].forEach(id => {
+                            animationStates.get(id).isAnimating = true;
+                        });
+                    }
+
                     updateOutputs();
                 }
 
