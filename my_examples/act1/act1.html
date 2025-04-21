@@ -7,14 +7,25 @@
     <!-- Main p5.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <style>
+        :root {
+            --primary-blue: #2952BD;
+            --primary-teal: #61C4B3;
+            --primary-teal-dark: #27A89A;
+            --gray-light: #B3B3B3;
+            --gray-dark: #4C4C4C;
+            --white: #FFFFFF;
+            --black: #000000;
+        }
+
         body {
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: 'CoFo Brilliant', system-ui, sans-serif;
+            background-color: #f5f5f5;
+            color: var(--black);
         }
 
         .container {
@@ -25,12 +36,13 @@
         }
 
         h1 {
-            color: #333;
+            color: var(--black);
             margin-bottom: 20px;
+            font-weight: 500;
         }
 
         p {
-            color: #666;
+            color: var(--gray-dark);
             line-height: 1.6;
             margin-bottom: 30px;
         }
@@ -46,29 +58,27 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
             transition: all 0.3s ease;
-            color: white;
+            color: var(--white);
+            font-family: inherit;
         }
 
         #restart {
-            background-color: #FF5722;
-            /* Deep Orange */
+            background-color: var(--primary-teal);
         }
 
         #check {
-            background-color: #2196F3;
-            /* Blue */
+            background-color: var(--primary-blue);
         }
 
         #show-answer {
-            background-color: #4CAF50;
-            /* Green */
+            background-color: var(--primary-teal-dark);
         }
 
         #prev-question,
         #next {
-            background-color: #9C27B0;
-            /* Purple */
+            background-color: var(--primary-blue);
         }
 
         .navigation button:hover,
@@ -78,32 +88,16 @@
         }
 
         .navigation button:disabled {
-            background-color: #cccccc;
+            background-color: var(--gray-light);
             cursor: not-allowed;
             transform: none;
-        }
-
-        .answer-hint {
-            position: absolute;
-            left: 50px;
-            background-color: #4CAF50;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-
-        .answer-hint.show {
-            opacity: 1;
+            opacity: 0.7;
         }
 
         .mode-selector {
             margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f5f5f5;
+            padding: 15px;
+            background-color: var(--white);
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             display: flex;
@@ -115,7 +109,7 @@
             position: relative;
             width: 200px;
             height: 40px;
-            background-color: #e0e0e0;
+            background-color: var(--gray-light);
             border-radius: 20px;
             cursor: pointer;
             display: flex;
@@ -126,8 +120,8 @@
 
         .mode-toggle span {
             z-index: 1;
-            color: #666;
-            font-weight: bold;
+            color: var(--white);
+            font-weight: 500;
             padding: 0 10px;
         }
 
@@ -135,7 +129,7 @@
             position: absolute;
             width: 50%;
             height: 34px;
-            background-color: white;
+            background-color: var(--white);
             border-radius: 17px;
             transition: transform 0.3s ease;
             left: 3px;
@@ -153,39 +147,47 @@
             padding: 5px 15px;
             border-radius: 4px;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 500;
             background: transparent;
             border: none;
         }
 
         .play-mode .mode-indicator {
-            color: #4CAF50;
+            color: var(--primary-teal);
         }
 
         .test-mode .mode-indicator {
-            color: #2196F3;
+            color: var(--primary-blue);
         }
 
         .gate-selector {
-            margin: 10px 0;
+            margin: 20px 0;
             display: flex;
             gap: 10px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .gate-button {
-            padding: 5px 15px;
-            border: 2px solid #4CAF50;
+            padding: 8px 20px;
+            border: 2px solid var(--primary-teal);
             border-radius: 4px;
-            background: white;
-            color: #4CAF50;
+            background: var(--white);
+            color: var(--primary-teal);
             cursor: pointer;
             transition: all 0.3s ease;
+            font-family: inherit;
+            font-weight: 500;
         }
 
         .gate-button.active {
-            background: #4CAF50;
-            color: white;
+            background: var(--primary-teal);
+            color: var(--white);
+        }
+
+        .gate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .navigation {
@@ -193,8 +195,8 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 20px;
-            padding: 10px;
-            background-color: white;
+            padding: 15px;
+            background-color: var(--white);
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
@@ -205,7 +207,38 @@
             align-items: center;
         }
 
-        /* Toast styling */
+        #question-count {
+            font-weight: 500;
+            color: var(--gray-dark);
+        }
+
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .explanation h3 {
+            color: var(--black);
+            margin-top: 0;
+            font-weight: 500;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
         .toast-container {
             position: fixed;
             top: 20px;
@@ -214,8 +247,8 @@
         }
 
         .toast {
-            background-color: white;
-            color: #333;
+            background-color: var(--white);
+            color: var(--black);
             padding: 12px 24px;
             border-radius: 4px;
             margin-bottom: 10px;
@@ -226,14 +259,15 @@
             max-width: 300px;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
+            font-weight: 500;
         }
 
         .toast.success {
-            border-left: 4px solid #4CAF50;
+            border-left: 4px solid var(--primary-teal);
         }
 
         .toast.error {
-            border-left: 4px solid #f44336;
+            border-left: 4px solid var(--gray-dark);
         }
 
         .toast.show {
@@ -248,16 +282,6 @@
             to {
                 transform: translateX(0);
             }
-        }
-
-        #canvas-container {
-            position: relative;
-            width: 800px;
-            height: 400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
     </style>
 </head>

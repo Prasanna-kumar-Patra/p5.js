@@ -240,6 +240,32 @@ const gateExplanations = {
     'XNOR': "An XNOR gate outputs 1 when an even number of inputs are 1, otherwise it outputs 0."
 };
 
+// Update color constants to match SVG exactly
+const COLORS = {
+    primaryBlue: 'rgb(41.18%, 32.16%, 74.12%)',  // #695BBD
+    primaryTeal: 'rgb(38.04%, 76.86%, 72.16%)', // #61C4B3
+    primaryTealDark: 'rgb(15.29%, 60.78%, 55.29%)', // #27A89A
+    grayLight: 'rgb(70.2%, 70.2%, 70.2%)', // #B3B3B3
+    grayDark: 'rgb(29.8%, 29.8%, 29.8%)', // #4C4C4C
+    white: '#FFFFFF',
+    black: '#000000',
+    // Signal colors
+    signalOne: {
+        fill: 'rgb(41.18%, 32.16%, 74.12%)',  // Blue fill for signal 1
+        border: 'rgb(21.57%, 16.47%, 54.51%)'  // Darker blue border
+    },
+    signalZero: {
+        fill: 'rgb(100%, 39.61%, 39.61%)',  // Red fill for signal 0
+        border: 'rgb(80%, 19.61%, 19.61%)'  // Darker red border
+    },
+    outputCorrect: 'rgb(41.18%, 32.16%, 74.12%)',
+    outputIncorrect: 'rgb(29.8%, 29.8%, 29.8%)'
+};
+
+// Add animation state tracking
+let animationStates = new Map(); // Track animation state for each connection
+let lastSignalValues = new Map(); // Track last signal values for each connection
+
 function preload() {
     // p5.js preload function - runs first
 }
@@ -438,7 +464,9 @@ function draw() {
     stroke(100, 149, 237);
     strokeWeight(3);
     for (let conn of connections) {
-        drawConnection(conn);
+        if (conn) {  // Only draw valid connections
+            drawConnection(conn);
+        }
     }
 
     // Draw flow particles
@@ -462,197 +490,16 @@ function draw() {
     }
 }
 
-// Add path points for each connection
-function generatePathPoints(start, end) {
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-    const midX = start.x + dx / 2;
-
-    // Create control points for the Bezier curve
-    const ctrl1X = start.x + dx / 4;
-    const ctrl1Y = start.y + (Math.random() - 0.5) * 40;
-    const ctrl2X = start.x + (dx * 3 / 4);
-    const ctrl2Y = end.y + (Math.random() - 0.5) * 40;
-
-    return {
-        start: start,
-        end: end,
-        ctrl1: { x: ctrl1X, y: ctrl1Y },
-        ctrl2: { x: ctrl2X, y: ctrl2Y }
-    };
-}
-
-function loadLevel(level) {
-    if (level >= levels.length) return;
-
-    // Reset check state when loading new level
-    hasCheckedAnswer = false;
-
-    gates = [...levels[level].gates];
-    inputs = [...levels[level].inputs].map(input => ({
-        ...input,
-        isCorrect: false
-    }));
-    outputs = [...levels[level].outputs];
-    connections = [];
-
-    // Reset user-set flags when loading a new level
-    inputs.forEach(input => {
-        input.userSet = false;
-        input.isCorrect = false;
-    });
-    outputs.forEach(output => output.userSet = false);
-
-    // Create connections based on level
-    if (level === 0) {
-        // Level 0: Single AND gate with two inputs and one output
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0])
-        ];
-    } else if (level === 1) {
-        // Level 1: Two parallel AND gates
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints(inputs[1], { x: gates[1].x - 30, y: gates[1].y - 10 }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1])
-        ];
-    } else if (level === 2) {
-        // Level 2: Three parallel AND gates
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
-            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
-            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1]),
-            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[2])
-        ];
-    } else if (level === 3) {
-        // Level 3: Two AND gates in series
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[1].x - 30, y: gates[1].y }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[0])
-        ];
-    } else if (level === 4) {
-        // Level 4: Combination of parallel and series gates
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
-            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y - 10 }),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[2].x - 30, y: gates[2].y + 10 }),
-            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y }),
-            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[0])
-        ];
-    } else if (level === 5) {
-        // Level 5: Three parallel gates feeding into a fourth gate
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
-            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
-            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[3].x - 30, y: gates[3].y - 10 }),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[3].x - 30, y: gates[3].y }),
-            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[3].x - 30, y: gates[3].y + 10 }),
-            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y }),
-            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, outputs[0])
-        ];
-    } else if (level === 6) {
-        // Level 6: 2x2 grid of AND gates
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
-            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
-            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1])
-        ];
-    } else if (level === 7) {
-        // Level 7: Branching circuit
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[1].x - 30, y: gates[1].y }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints(inputs[3], { x: gates[2].x - 30, y: gates[2].y + 10 }),
-            generatePathPoints(inputs[4], { x: gates[0].x - 30, y: gates[0].y }),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[0]),
-            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[1])
-        ];
-    } else if (level === 8) {
-        // Level 8: Five AND gates in a complex pattern
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
-            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
-            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
-            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y - 10 }),
-            generatePathPoints(inputs[7], { x: gates[4].x - 30, y: gates[4].y - 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[3].x - 30, y: gates[3].y + 10 }),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[3].x - 30, y: gates[3].y }),
-            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[4].x - 30, y: gates[4].y + 10 }),
-            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, outputs[0]),
-            generatePathPoints({ x: gates[4].x + 30, y: gates[4].y }, outputs[1])
-        ];
-    } else if (level === 9) {
-        // Level 9: Challenge level with three gates
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
-            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y - 10 }),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[2].x - 30, y: gates[2].y + 10 }),
-            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y }),
-            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[0])
-        ];
-    } else if (level === 10) {
-        // Level 10: Final challenge with six gates
-        connections = [
-            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
-            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
-            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
-            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
-            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
-            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
-            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y - 10 }),
-            generatePathPoints(inputs[7], { x: gates[4].x - 30, y: gates[4].y - 10 }),
-            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[5].x - 30, y: gates[5].y - 10 }),
-            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[5].x - 30, y: gates[5].y }),
-            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[5].x - 30, y: gates[5].y + 10 }),
-            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, { x: gates[5].x - 30, y: gates[5].y }),
-            generatePathPoints({ x: gates[4].x + 30, y: gates[4].y }, { x: gates[5].x - 30, y: gates[5].y }),
-            generatePathPoints(inputs[8], { x: gates[5].x - 30, y: gates[5].y }),
-            generatePathPoints({ x: gates[5].x + 30, y: gates[5].y }, outputs[0])
-        ];
+function drawConnection(conn) {
+    // Check if connection is valid
+    if (!conn || !conn.start || !conn.end) {
+        console.warn('Invalid connection object:', conn);
+        return;
     }
 
-    // Update explanation for current gate type
-    updateExplanation();
+    // Get connection ID for tracking animation state
+    const connId = `${conn.start.x},${conn.start.y}-${conn.end.x},${conn.end.y}`;
 
-    // Update navigation buttons
-    updateQuestionNavigation();
-}
-
-function drawConnection(conn) {
     // Determine the signal value for this connection
     let signalValue = getInputValue(conn.start);
 
@@ -663,70 +510,189 @@ function drawConnection(conn) {
         abs(conn.end.y - output.y) < 1
     );
 
-    // Set color based on mode and connection type
-    if (isTeacherMode && isOutputConnection) {
-        // In test mode, keep output connections gray
-        stroke('#808080'); // Gray
-        strokeWeight(3);
-    } else {
-        // For input connections or in play mode, use signal-based colors
-        if (signalValue === 1) {
-            stroke('#4CAF50'); // Green for 1
-            strokeWeight(4);
-        } else {
-            stroke('#f44336'); // Red for 0
-            strokeWeight(3);
-        }
+    // Initialize animation state if needed
+    if (!animationStates.has(connId)) {
+        animationStates.set(connId, {
+            progress: 0,
+            isAnimating: false
+        });
+        lastSignalValues.set(connId, signalValue);
     }
 
-    // Draw the curved path
-    noFill();
-    bezier(
-        conn.start.x, conn.start.y,
-        conn.ctrl1.x, conn.ctrl1.y,
-        conn.ctrl2.x, conn.ctrl2.y,
-        conn.end.x, conn.end.y
+    // Check if we should start animation
+    const lastValue = lastSignalValues.get(connId);
+    const shouldAnimate = (
+        (isPlayMode && signalValue !== lastValue) || // Value changed in play mode
+        (isTeacherMode && (hasCheckedAnswer || savedQuestion !== null)) // Show answer or check in test mode
     );
 
-    // Draw direction arrow at the midpoint
-    let t = 0.5;
-    let midX = bezierPoint(conn.start.x, conn.ctrl1.x, conn.ctrl2.x, conn.end.x, t);
-    let midY = bezierPoint(conn.start.y, conn.ctrl1.y, conn.ctrl2.y, conn.end.y, t);
-    let tangentX = bezierTangent(conn.start.x, conn.ctrl1.x, conn.ctrl2.x, conn.end.x, t);
-    let tangentY = bezierTangent(conn.start.y, conn.ctrl1.y, conn.ctrl2.y, conn.end.y, t);
+    if (shouldAnimate) {
+        animationStates.get(connId).isAnimating = true;
+        animationStates.get(connId).progress = 0;
+        lastSignalValues.set(connId, signalValue);
+    }
 
-    let angle = atan2(tangentY, tangentX);
+    // Set base line style
+    strokeCap(ROUND);
+    strokeJoin(ROUND);
+    noFill();
+
+    // Calculate the bend point
+    let bendX, bendY;
+    if (abs(conn.end.x - conn.start.x) > abs(conn.end.y - conn.start.y)) {
+        bendX = conn.start.x + (conn.end.x - conn.start.x) * 0.8;
+        bendY = conn.start.y;
+    } else {
+        bendX = conn.start.x;
+        bendY = conn.start.y + (conn.end.y - conn.start.y) * 0.8;
+    }
+
+    // Draw the base path with appropriate color
+    const baseColor = isTeacherMode && isOutputConnection ?
+        COLORS.grayLight :
+        (signalValue === 1 ? COLORS.signalOne.fill : COLORS.signalZero.fill);
+
+    stroke(baseColor);
+    strokeWeight(2);
+    beginShape();
+    vertex(conn.start.x, conn.start.y);
+    vertex(bendX, bendY);
+    vertex(conn.end.x, conn.end.y);
+    endShape();
+
+    // Draw direction arrow
+    let midX = (bendX + conn.end.x) / 2;
+    let midY = (bendY + conn.end.y) / 2;
+    let angle = atan2(conn.end.y - bendY, conn.end.x - bendX);
 
     push();
     translate(midX, midY);
     rotate(angle);
-    // Use the same color for the arrow as the line
-    fill(isTeacherMode && isOutputConnection ? '#808080' : (signalValue === 1 ? '#4CAF50' : '#f44336'));
+    fill(baseColor);
     noStroke();
     triangle(-8, -4, -8, 4, 0, 0);
     pop();
+
+    // Draw animation if needed
+    if (animationStates.get(connId).isAnimating) {
+        drawBorderFill(conn, bendX, bendY, signalValue, connId);
+    }
 }
 
-function startFlowAnimation() {
-    isAnimating = true;
-    animationStartTime = millis();
-    flowParticles = [];
+function drawBorderFill(conn, bendX, bendY, signalValue, connId) {
+    const animationSpeed = 0.015;
+    const state = animationStates.get(connId);
+    state.progress += animationSpeed;
 
-    // Create particles for each connection
-    for (let conn of connections) {
-        let dx = conn.end.x - conn.start.x;
-        let dy = conn.end.y - conn.start.y;
-        let distance = sqrt(dx * dx + dy * dy);
-        let numParticles = floor(distance / 20); // One particle every 20 pixels
-
-        for (let i = 0; i < numParticles; i++) {
-            flowParticles.push({
-                connection: conn,
-                progress: i / numParticles,
-                value: getInputValue(conn.start)
-            });
-        }
+    if (state.progress >= 1) {
+        state.isAnimating = false;
+        state.progress = 1;
     }
+
+    push();
+    noFill();
+
+    // Set colors based on signal value
+    const colors = signalValue === 1 ? COLORS.signalOne : COLORS.signalZero;
+    const fillColor = colors.fill;
+    const borderColor = colors.border;
+
+    // Calculate path segments
+    const firstSegmentLength = dist(conn.start.x, conn.start.y, bendX, bendY);
+    const secondSegmentLength = dist(bendX, bendY, conn.end.x, conn.end.y);
+    const totalLength = firstSegmentLength + secondSegmentLength;
+    const currentLength = totalLength * state.progress;
+
+    // Draw the border fill
+    if (currentLength <= firstSegmentLength) {
+        // First segment (start to bend)
+        const t = currentLength / firstSegmentLength;
+        const x = lerp(conn.start.x, bendX, t);
+        const y = lerp(conn.start.y, bendY, t);
+
+        // Draw the filled portion
+        stroke(fillColor);
+        strokeWeight(6);
+        line(conn.start.x, conn.start.y, x, y);
+
+        // Draw the border
+        stroke(borderColor);
+        strokeWeight(2);
+        line(x, y, bendX, bendY);
+        line(bendX, bendY, conn.end.x, conn.end.y);
+    } else {
+        // First segment is complete, working on second segment
+        const remainingLength = currentLength - firstSegmentLength;
+        const t = remainingLength / secondSegmentLength;
+        const x = lerp(bendX, conn.end.x, t);
+        const y = lerp(bendY, conn.end.y, t);
+
+        // Draw the complete first segment
+        stroke(fillColor);
+        strokeWeight(6);
+        line(conn.start.x, conn.start.y, bendX, bendY);
+
+        // Draw the filled portion of second segment
+        line(bendX, bendY, x, y);
+
+        // Draw the remaining border
+        stroke(borderColor);
+        strokeWeight(2);
+        line(x, y, conn.end.x, conn.end.y);
+    }
+
+    // Add subtle glow at the current position
+    if (currentLength <= firstSegmentLength) {
+        const t = currentLength / firstSegmentLength;
+        const x = lerp(conn.start.x, bendX, t);
+        const y = lerp(conn.start.y, bendY, t);
+
+        push();
+        noStroke();
+        for (let i = 0; i < 2; i++) {
+            const alpha = map(i, 0, 1, 50, 0);
+            fill(red(fillColor), green(fillColor), blue(fillColor), alpha);
+            circle(x, y, 10 - i * 2);
+        }
+        pop();
+    } else {
+        const remainingLength = currentLength - firstSegmentLength;
+        const t = remainingLength / secondSegmentLength;
+        const x = lerp(bendX, conn.end.x, t);
+        const y = lerp(bendY, conn.end.y, t);
+
+        push();
+        noStroke();
+        for (let i = 0; i < 2; i++) {
+            const alpha = map(i, 0, 1, 50, 0);
+            fill(red(fillColor), green(fillColor), blue(fillColor), alpha);
+            circle(x, y, 10 - i * 2);
+        }
+        pop();
+    }
+
+    pop();
+}
+
+// Remove the old progressive fill function since we're using border fill now
+function drawProgressiveFill(conn, bendX, bendY) {
+    // This function is replaced by drawBorderFill
+}
+
+// Remove the old lightning effect function since we're using progressive fill now
+function drawLightningEffect(conn, bendX, bendY) {
+    // This function is replaced by drawBorderFill
+}
+
+// Remove the particle system since we're using lightning effect instead
+function updateAndDrawParticles() {
+    // This function is now empty as we're using the lightning effect
+}
+
+// Update the startFlowAnimation function to use the new effect
+function startFlowAnimation() {
+    // No need for particle initialization anymore
+    // The lightning effect is handled in drawConnection
 }
 
 function getInputValue(point) {
@@ -755,64 +721,27 @@ function getInputValue(point) {
     return 0;
 }
 
-function updateAndDrawParticles() {
-    let currentTime = millis();
-    let progress = (currentTime - animationStartTime) / ANIMATION_DURATION;
-
-    if (progress >= 1) {
-        isAnimating = false;
-        return;
-    }
-
-    for (let particle of flowParticles) {
-        let p = (particle.progress + progress) % 1;
-
-        // Calculate position along Bezier curve
-        let x = bezierPoint(
-            particle.connection.start.x,
-            particle.connection.ctrl1.x,
-            particle.connection.ctrl2.x,
-            particle.connection.end.x,
-            p
-        );
-        let y = bezierPoint(
-            particle.connection.start.y,
-            particle.connection.ctrl1.y,
-            particle.connection.ctrl2.y,
-            particle.connection.end.y,
-            p
-        );
-
-        // Draw particle with more distinct colors
-        noStroke();
-        fill(particle.value ? '#4169E1' : '#696969');
-        circle(x, y, 8);
-
-        // Add glow effect for 1 signals
-        if (particle.value) {
-            drawingContext.shadowBlur = 10;
-            drawingContext.shadowColor = '#4169E1';
-            circle(x, y, 8);
-            drawingContext.shadowBlur = 0;
-        }
-    }
-}
-
 function drawGate(gate) {
     push();
     translate(gate.x, gate.y);
 
-    // Gate body
-    fill(127, 255, 212);
-    stroke(0);
+    // Gate body - using teal color from SVG
+    fill(COLORS.primaryTeal);
+    stroke(COLORS.primaryTealDark);
     strokeWeight(2);
-    rect(-30, -20, 60, 40, 5);
+    strokeCap(ROUND);
+    strokeJoin(ROUND);
 
-    // Text
-    fill(0);
+    // Draw rounded rectangle for gate body with SVG-like corners
+    rectMode(CENTER);
+    rect(0, 0, 48, 32, 4);
+
+    // Gate text
+    fill(COLORS.black);
     noStroke();
     textAlign(CENTER, CENTER);
-    textSize(14);
+    textSize(13);
+    textFont('CoFo Brilliant, system-ui, sans-serif');
     text(currentGateType, 0, 0);
     pop();
 }
@@ -821,27 +750,35 @@ function drawInput(input) {
     push();
     translate(input.x, input.y);
 
-    // Input circle with more distinct colors
-    fill(input.value ? '#4169E1' : '#696969'); // Royal Blue for 1, Dim Gray for 0
-    stroke(0);
+    // Input circle with modern styling
+    if (input.value === 1) {
+        fill(COLORS.signalOne.fill);
+        stroke(COLORS.signalOne.border);
+    } else {
+        fill(COLORS.signalZero.fill);
+        stroke(COLORS.signalZero.border);
+    }
     strokeWeight(2);
-    circle(0, 0, 30);
+    strokeCap(ROUND);
+    strokeJoin(ROUND);
+    circle(0, 0, 24);
 
     // Value text
-    fill(255);
+    fill(COLORS.white);
     noStroke();
     textAlign(CENTER, CENTER);
     textSize(16);
+    textFont('CoFo Brilliant, system-ui, sans-serif');
     text(input.value, 0, 0);
 
     // Draw checkmark if correct in test mode
     if (isTeacherMode && input.isCorrect) {
         push();
         translate(20, -20);
-        fill('#4CAF50');
+        fill(COLORS.grayLight);
         noStroke();
-        circle(0, 0, 20);
-        stroke(255);
+        circle(0, 0, 16);
+        stroke(COLORS.white);
         strokeWeight(2);
         line(-5, 0, -2, 3);
         line(-2, 3, 4, -3);
@@ -855,25 +792,46 @@ function drawOutput(output) {
     push();
     translate(output.x, output.y);
 
-    // Output square with colors based on check state
+    // Output square with modern styling
     if (isTeacherMode && hasCheckedAnswer) {
         const expectedOutput = calculateExpectedOutput(outputs.indexOf(output));
         const isCorrect = output.value === expectedOutput;
-        fill(isCorrect ? '#4CAF50' : '#f44336'); // Green for correct, Red for incorrect
+        fill(isCorrect ? COLORS.outputCorrect : COLORS.outputIncorrect);
+        stroke(isCorrect ? COLORS.outputCorrect : COLORS.outputIncorrect);
     } else {
-        fill(output.value ? '#4169E1' : '#696969'); // Normal colors
+        fill(output.value ? COLORS.signalOne.fill : COLORS.signalZero.fill);
+        stroke(output.value ? COLORS.signalOne.border : COLORS.signalZero.border);
     }
-
-    stroke(0);
     strokeWeight(2);
-    rect(-15, -15, 30, 30);
+    strokeCap(ROUND);
+    strokeJoin(ROUND);
+
+    // Draw rounded rectangle for output
+    rectMode(CENTER);
+    rect(0, 0, 44, 44, 6);
 
     // Value text
-    fill(255);
+    fill(COLORS.white);
     noStroke();
     textAlign(CENTER, CENTER);
-    textSize(16);
+    textSize(22);
+    textFont('CoFo Brilliant, system-ui, sans-serif');
     text(output.value, 0, 0);
+
+    // Draw checkmark for correct answers
+    if (isTeacherMode && hasCheckedAnswer && output.value === calculateExpectedOutput(outputs.indexOf(output))) {
+        push();
+        translate(20, -20);
+        fill(COLORS.grayLight);
+        noStroke();
+        rectMode(CENTER);
+        rect(0, 0, 16, 16, 4);
+        stroke(COLORS.white);
+        strokeWeight(2);
+        line(-5, 0, -2, 3);
+        line(-2, 3, 4, -3);
+        pop();
+    }
 
     pop();
 }
@@ -888,7 +846,6 @@ function mousePressed() {
                 // Only update outputs in play mode
                 if (isPlayMode) {
                     updateOutputs();
-                    startFlowAnimation();
                 }
 
                 // In test mode, mark this input as user-set
@@ -906,7 +863,7 @@ function mousePressed() {
             if (dist(mouseX, mouseY, output.x, output.y) < 15) {
                 if (!output.locked) {
                     output.value = 1 - output.value;
-                    output.userSet = true; // Mark output as user-set
+                    output.userSet = true;
                 }
                 return;
             }
@@ -1211,4 +1168,201 @@ function updateExplanation() {
         explanation.style.display = 'block';
         explanationText.textContent = gateExplanations[currentGateType] || '';
     }
+}
+
+// Update the generatePathPoints function to return a proper connection object
+function generatePathPoints(start, end) {
+    if (!start || !end) {
+        console.warn('Invalid start or end point:', { start, end });
+        return null;
+    }
+
+    let bendX, bendY;
+
+    if (abs(end.x - start.x) > abs(end.y - start.y)) {
+        // Horizontal connection with vertical bend
+        bendX = start.x + (end.x - start.x) * 0.8;
+        bendY = start.y;
+    } else {
+        // Vertical connection with horizontal bend
+        bendX = start.x;
+        bendY = start.y + (end.y - start.y) * 0.8;
+    }
+
+    return {
+        start: start,
+        end: end,
+        bendX: bendX,
+        bendY: bendY
+    };
+}
+
+function loadLevel(level) {
+    if (level >= levels.length) return;
+
+    // Reset check state when loading new level
+    hasCheckedAnswer = false;
+
+    gates = [...levels[level].gates];
+    inputs = [...levels[level].inputs].map(input => ({
+        ...input,
+        isCorrect: false
+    }));
+    outputs = [...levels[level].outputs];
+    connections = [];
+
+    // Reset user-set flags when loading a new level
+    inputs.forEach(input => {
+        input.userSet = false;
+        input.isCorrect = false;
+    });
+    outputs.forEach(output => output.userSet = false);
+
+    // Create connections based on level
+    if (level === 0) {
+        // Level 0: Single AND gate with two inputs and one output
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0])
+        ];
+    } else if (level === 1) {
+        // Level 1: Two parallel AND gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[1], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1])
+        ];
+    } else if (level === 2) {
+        // Level 2: Three parallel AND gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1]),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[2])
+        ];
+    } else if (level === 3) {
+        // Level 3: Two AND gates in series
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[1].x - 30, y: gates[1].y }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[0])
+        ];
+    } else if (level === 4) {
+        // Level 4: Combination of parallel and series gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[0])
+        ];
+    } else if (level === 5) {
+        // Level 5: Three parallel gates feeding into a fourth gate
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[3].x - 30, y: gates[3].y - 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[3].x - 30, y: gates[3].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[3].x - 30, y: gates[3].y + 10 }),
+            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y }),
+            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, outputs[0])
+        ];
+    } else if (level === 6) {
+        // Level 6: 2x2 grid of AND gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1])
+        ];
+    } else if (level === 7) {
+        // Level 7: Branching circuit
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[1].x - 30, y: gates[1].y }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[3], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[0].x - 30, y: gates[0].y }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[0]),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[1])
+        ];
+    } else if (level === 8) {
+        // Level 8: Five AND gates in a complex pattern
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y - 10 }),
+            generatePathPoints(inputs[7], { x: gates[4].x - 30, y: gates[4].y - 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[3].x - 30, y: gates[3].y + 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[3].x - 30, y: gates[3].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[4].x - 30, y: gates[4].y + 10 }),
+            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, outputs[0]),
+            generatePathPoints({ x: gates[4].x + 30, y: gates[4].y }, outputs[1])
+        ];
+    } else if (level === 9) {
+        // Level 9: Challenge level with three gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[0])
+        ];
+    } else if (level === 10) {
+        // Level 10: Final challenge with six gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y - 10 }),
+            generatePathPoints(inputs[7], { x: gates[4].x - 30, y: gates[4].y - 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[5].x - 30, y: gates[5].y - 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[5].x - 30, y: gates[5].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[5].x - 30, y: gates[5].y + 10 }),
+            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, { x: gates[5].x - 30, y: gates[5].y }),
+            generatePathPoints({ x: gates[4].x + 30, y: gates[4].y }, { x: gates[5].x - 30, y: gates[5].y }),
+            generatePathPoints(inputs[8], { x: gates[5].x - 30, y: gates[5].y }),
+            generatePathPoints({ x: gates[5].x + 30, y: gates[5].y }, outputs[0])
+        ];
+    }
+
+    // Update explanation for current gate type
+    updateExplanation();
+
+    // Update navigation buttons
+    updateQuestionNavigation();
 } 
