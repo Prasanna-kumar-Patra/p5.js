@@ -534,9 +534,16 @@ function drawConnection(conn) {
     if (shouldAnimate) {
         // Find the group this connection belongs to
         const groupIndex = findConnectionGroup(conn);
-        if (groupIndex !== -1 && !animationGroups[groupIndex].includes(connId)) {
-            animationGroups[groupIndex].push(connId);
-            lastSignalValues.set(connId, signalValue);
+        if (groupIndex !== -1) {
+            // Ensure the animation group exists
+            if (!animationGroups[groupIndex]) {
+                animationGroups[groupIndex] = [];
+            }
+            // Only add if not already included
+            if (!animationGroups[groupIndex].includes(connId)) {
+                animationGroups[groupIndex].push(connId);
+                lastSignalValues.set(connId, signalValue);
+            }
         }
     }
 
@@ -1325,6 +1332,11 @@ function loadLevel(level) {
         input.isCorrect = false;
     });
     outputs.forEach(output => output.userSet = false);
+
+    // Initialize animation groups
+    animationGroups = [];
+    animationGroups[0] = []; // Input connections
+    animationGroups[1] = []; // Gate output connections
 
     // Create connections based on level
     if (level === 0) {
