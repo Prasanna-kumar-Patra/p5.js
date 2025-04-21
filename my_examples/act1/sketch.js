@@ -226,6 +226,20 @@ let levels = [
 // Add current gate type variable
 let currentGateType = 'AND';
 
+// Add variables for tracking check state
+let hasCheckedAnswer = false;
+
+// Add gate-specific explanations
+const gateExplanations = {
+    'AND': "An AND gate outputs 1 when all inputs are 1, otherwise it outputs 0.",
+    'OR': "An OR gate outputs 1 when at least one input is 1, otherwise it outputs 0.",
+    'NOT': "A NOT gate inverts the input: outputs 1 when input is 0, and outputs 0 when input is 1.",
+    'NAND': "A NAND gate outputs 0 when all inputs are 1, otherwise it outputs 1.",
+    'NOR': "A NOR gate outputs 1 when all inputs are 0, otherwise it outputs 0.",
+    'XOR': "An XOR gate outputs 1 when an odd number of inputs are 1, otherwise it outputs 0.",
+    'XNOR': "An XNOR gate outputs 1 when an even number of inputs are 1, otherwise it outputs 0."
+};
+
 function preload() {
     // p5.js preload function - runs first
 }
@@ -234,6 +248,9 @@ function setup() {
     const canvas = createCanvas(800, 400);
     canvas.parent('canvas-container');
     loadLevel(currentLevel);
+    // Initialize in play mode
+    isPlayMode = true;
+    isTeacherMode = false;
     // Call windowLoad directly since we know the DOM is ready
     windowLoad();
 }
@@ -251,8 +268,9 @@ function initializeControls() {
         restartBtn: document.getElementById('restart'),
         checkBtn: document.getElementById('check'),
         nextBtn: document.getElementById('next'),
-        modeIndicator: document.querySelector('.mode-indicator'),
-        saveChangesBtn: document.getElementById('save-changes')
+        prevBtn: document.getElementById('prev-question'),
+        showAnswerBtn: document.getElementById('show-answer'),
+        modeIndicator: document.querySelector('.mode-indicator')
     };
 
     // If any required element is missing, try again later
@@ -263,7 +281,7 @@ function initializeControls() {
 
     initialized = true;
 
-    // Setup mode toggle
+    // Setup mode toggle with initial play mode
     requiredElements.modeToggle.addEventListener('click', () => {
         const isTest = requiredElements.modeToggle.classList.contains('test');
         requiredElements.modeToggle.classList.toggle('test');
@@ -275,6 +293,38 @@ function initializeControls() {
         }
     });
 
+    // Initialize in play mode
+    requiredElements.modeToggle.classList.remove('test');
+    requiredElements.modeToggle.classList.add('live');
+    setPlayMode();
+
+    // Hide check and show-answer buttons initially
+    const checkBtn = document.getElementById('check');
+    const showAnswerBtn = document.getElementById('show-answer');
+    if (checkBtn) checkBtn.style.display = 'none';
+    if (showAnswerBtn) showAnswerBtn.style.display = 'none';
+
+    // Setup control buttons
+    requiredElements.restartBtn.addEventListener('click', () => {
+        loadLevel(currentLevel);
+        if (isTeacherMode) {
+            randomizeInputs();
+        }
+    });
+
+    requiredElements.checkBtn.addEventListener('click', checkAnswer);
+    requiredElements.showAnswerBtn.addEventListener('click', showAnswer);
+    requiredElements.nextBtn.addEventListener('click', nextLevel);
+
+    // Setup question navigation
+    requiredElements.prevBtn.addEventListener('click', () => {
+        if (currentLevel > 0) {
+            currentLevel--;
+            loadLevel(currentLevel);
+            updateQuestionNavigation();
+        }
+    });
+
     // Setup gate selector
     const gateButtons = document.querySelectorAll('.gate-button');
     gateButtons.forEach(button => {
@@ -282,58 +332,53 @@ function initializeControls() {
             gateButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
             currentGateType = button.dataset.gate;
+            updateExplanation();
             loadLevel(currentLevel); // Reload level with new gate type
         });
     });
 
-    // Setup control buttons
-    requiredElements.restartBtn.addEventListener('click', () => {
-        loadLevel(currentLevel);
-    });
-
-    requiredElements.checkBtn.addEventListener('click', () => {
-        startFlowAnimation();
-        setTimeout(checkAnswer, ANIMATION_DURATION + 200);
-    });
-
-    requiredElements.nextBtn.addEventListener('click', nextLevel);
-
-    // Add event listeners for question navigation
-    const prevBtn = document.getElementById('prev-question');
-    const nextBtn = document.getElementById('next-question');
-    const questionCount = document.getElementById('question-count');
-
-    if (prevBtn && nextBtn && questionCount) {
-        prevBtn.addEventListener('click', () => {
-            if (currentLevel > 0) {
-                currentLevel--;
-                loadLevel(currentLevel);
-                updateQuestionNavigation();
-            }
-        });
-
-        nextBtn.addEventListener('click', () => {
-            if (currentLevel < levels.length - 1) {
-                currentLevel++;
-                loadLevel(currentLevel);
-                updateQuestionNavigation();
-            }
-        });
-    }
-
-    // Add event listener for show answer button
-    const showAnswerBtn = document.getElementById('show-answer');
-    if (showAnswerBtn) {
-        showAnswerBtn.addEventListener('click', showAnswer);
-    }
-
     // Initial question navigation update
     updateQuestionNavigation();
+
+    // Add CSS for answer hints if not already present
+    if (!document.getElementById('answer-hint-styles')) {
+        const style = document.createElement('style');
+        style.id = 'answer-hint-styles';
+        style.textContent = `
+            .answer-hint {
+                position: absolute;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 14px;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+                z-index: 1000;
+                white-space: nowrap;
+                text-align: center;
+                min-width: 30px;
+            }
+            .answer-hint.incorrect {
+                background-color: #f44336;
+                color: white;
+            }
+            .answer-hint.incorrect-text {
+                background-color: transparent;
+                color: #f44336;
+                font-weight: bold;
+            }
+            .answer-hint.show {
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 function setPlayMode() {
     isPlayMode = true;
     isTeacherMode = false;
+    hasCheckedAnswer = false; // Reset check state
     const modeIndicator = document.querySelector('.mode-indicator');
     if (modeIndicator) {
         modeIndicator.textContent = 'Live Mode';
@@ -356,6 +401,7 @@ function setPlayMode() {
 function setTestMode() {
     isPlayMode = false;
     isTeacherMode = true;
+    hasCheckedAnswer = false; // Reset check state
     const modeIndicator = document.querySelector('.mode-indicator');
     if (modeIndicator) {
         modeIndicator.textContent = 'Test Mode';
@@ -439,13 +485,22 @@ function generatePathPoints(start, end) {
 function loadLevel(level) {
     if (level >= levels.length) return;
 
+    // Reset check state when loading new level
+    hasCheckedAnswer = false;
+
     gates = [...levels[level].gates];
-    inputs = [...levels[level].inputs];
+    inputs = [...levels[level].inputs].map(input => ({
+        ...input,
+        isCorrect: false
+    }));
     outputs = [...levels[level].outputs];
     connections = [];
 
     // Reset user-set flags when loading a new level
-    inputs.forEach(input => input.userSet = false);
+    inputs.forEach(input => {
+        input.userSet = false;
+        input.isCorrect = false;
+    });
     outputs.forEach(output => output.userSet = false);
 
     // Create connections based on level
@@ -590,37 +645,41 @@ function loadLevel(level) {
         ];
     }
 
-    // Show explanation
-    const explanation = document.getElementById('explanation');
-    const explanationText = document.getElementById('explanation-text');
-    if (explanation && explanationText) {
-        explanation.style.display = 'block';
-        explanationText.textContent = levels[level].explanation;
-    }
+    // Update explanation for current gate type
+    updateExplanation();
+
+    // Update navigation buttons
+    updateQuestionNavigation();
 }
 
 function drawConnection(conn) {
     // Determine the signal value for this connection
     let signalValue = getInputValue(conn.start);
 
-    // Set color based on signal value
-    if (signalValue === 1) {
-        stroke(65, 105, 225); // Royal Blue for 1
-        strokeWeight(4);
-    } else {
-        stroke(169, 169, 169); // Dark Gray for 0
+    // Check if this is an output connection (RHS)
+    const isOutputConnection = conn.end && outputs.some(output =>
+        output &&
+        abs(conn.end.x - output.x) < 1 &&
+        abs(conn.end.y - output.y) < 1
+    );
+
+    // Set color based on mode and connection type
+    if (isTeacherMode && isOutputConnection) {
+        // In test mode, keep output connections gray
+        stroke('#808080'); // Gray
         strokeWeight(3);
-        drawDashedBezier(
-            conn.start.x, conn.start.y,
-            conn.ctrl1.x, conn.ctrl1.y,
-            conn.ctrl2.x, conn.ctrl2.y,
-            conn.end.x, conn.end.y,
-            10 // dash length
-        );
-        return; // Skip normal bezier drawing for 0 signals
+    } else {
+        // For input connections or in play mode, use signal-based colors
+        if (signalValue === 1) {
+            stroke('#4CAF50'); // Green for 1
+            strokeWeight(4);
+        } else {
+            stroke('#f44336'); // Red for 0
+            strokeWeight(3);
+        }
     }
 
-    // Draw the curved path for signal 1
+    // Draw the curved path
     noFill();
     bezier(
         conn.start.x, conn.start.y,
@@ -641,34 +700,11 @@ function drawConnection(conn) {
     push();
     translate(midX, midY);
     rotate(angle);
-    fill(signalValue === 1 ? 65 : 169);
+    // Use the same color for the arrow as the line
+    fill(isTeacherMode && isOutputConnection ? '#808080' : (signalValue === 1 ? '#4CAF50' : '#f44336'));
     noStroke();
     triangle(-8, -4, -8, 4, 0, 0);
     pop();
-}
-
-// Function to draw dashed bezier curves
-function drawDashedBezier(x1, y1, x2, y2, x3, y3, x4, y4, dashLength) {
-    let steps = 50;
-    let px = x1;
-    let py = y1;
-    let drawLine = true;
-
-    for (let i = 0; i <= steps; i++) {
-        let t = i / steps;
-        let x = bezierPoint(x1, x2, x3, x4, t);
-        let y = bezierPoint(y1, y2, y3, y4, t);
-
-        let d = dist(px, py, x, y);
-        if (d >= dashLength) {
-            if (drawLine) {
-                line(px, py, x, y);
-            }
-            px = x;
-            py = y;
-            drawLine = !drawLine;
-        }
-    }
 }
 
 function startFlowAnimation() {
@@ -694,22 +730,28 @@ function startFlowAnimation() {
 }
 
 function getInputValue(point) {
-    // Find if this point is an input or connected to a gate
-    for (let input of inputs) {
-        if (input.x === point.x && input.y === point.y) {
-            return input.value;
-        }
+    if (!point) return 0;
+
+    // Find if this point is an input
+    const input = inputs.find(input =>
+        input &&
+        input.x === point.x &&
+        input.y === point.y
+    );
+    if (input) {
+        return input.value;
     }
+
     // If not found, check if it's a gate output
-    for (let gate of gates) {
-        if (abs(point.x - (gate.x + 30)) < 1) { // Gate output point
-            let gateInputs = connections.filter(c =>
-                abs(c.end.x - (gate.x - 30)) < 1 &&
-                abs(c.end.y - gate.y) < 30
-            ).map(c => getInputValue(c.start));
-            return gateInputs.every(v => v === 1) ? 1 : 0;
-        }
+    const gate = gates.find(gate =>
+        gate &&
+        abs(point.x - (gate.x + 30)) < 1
+    );
+    if (gate) {
+        const gateIndex = gates.indexOf(gate);
+        return calculateExpectedOutput(gateIndex);
     }
+
     return 0;
 }
 
@@ -791,6 +833,21 @@ function drawInput(input) {
     textAlign(CENTER, CENTER);
     textSize(16);
     text(input.value, 0, 0);
+
+    // Draw checkmark if correct in test mode
+    if (isTeacherMode && input.isCorrect) {
+        push();
+        translate(20, -20);
+        fill('#4CAF50');
+        noStroke();
+        circle(0, 0, 20);
+        stroke(255);
+        strokeWeight(2);
+        line(-5, 0, -2, 3);
+        line(-2, 3, 4, -3);
+        pop();
+    }
+
     pop();
 }
 
@@ -798,8 +855,15 @@ function drawOutput(output) {
     push();
     translate(output.x, output.y);
 
-    // Output square with more distinct colors
-    fill(output.value ? '#4169E1' : '#696969'); // Royal Blue for 1, Dim Gray for 0
+    // Output square with colors based on check state
+    if (isTeacherMode && hasCheckedAnswer) {
+        const expectedOutput = calculateExpectedOutput(outputs.indexOf(output));
+        const isCorrect = output.value === expectedOutput;
+        fill(isCorrect ? '#4CAF50' : '#f44336'); // Green for correct, Red for incorrect
+    } else {
+        fill(output.value ? '#4169E1' : '#696969'); // Normal colors
+    }
+
     stroke(0);
     strokeWeight(2);
     rect(-15, -15, 30, 30);
@@ -810,6 +874,7 @@ function drawOutput(output) {
     textAlign(CENTER, CENTER);
     textSize(16);
     text(output.value, 0, 0);
+
     pop();
 }
 
@@ -895,24 +960,60 @@ function showToast(message, type = 'success') {
 }
 
 function checkAnswer() {
+    hasCheckedAnswer = true;
     let correct = true;
+
+    if (!outputs || outputs.length === 0) {
+        console.error('No outputs defined for current level');
+        return;
+    }
+
     if (isTeacherMode) {
         // In test mode, check if outputs match the current level's expected outputs
-        for (let i = 0; i < outputs.length; i++) {
-            let expectedOutput = calculateExpectedOutput(i);
-            if (outputs[i].value !== expectedOutput) {
+        outputs.forEach((output, index) => {
+            if (!output) {
+                console.error(`Output at index ${index} is undefined`);
                 correct = false;
-                break;
+                return;
             }
+            let expectedOutput = calculateExpectedOutput(index);
+            if (output.value !== expectedOutput) {
+                correct = false;
+            }
+        });
+
+        // Update input correctness flags
+        if (inputs && inputs.length > 0) {
+            inputs.forEach(input => {
+                if (!input) return;
+                const connectedGate = findConnectedGate(input);
+                if (connectedGate) {
+                    const gateIndex = gates.indexOf(connectedGate);
+                    if (gateIndex !== -1) {
+                        const expectedOutput = calculateExpectedOutput(gateIndex);
+                        const actualOutput = outputs[gateIndex]?.value;
+                        input.isCorrect = expectedOutput === actualOutput;
+                    }
+                }
+            });
         }
     } else {
         // In play mode, check against the level's predefined outputs
-        for (let i = 0; i < outputs.length; i++) {
-            if (outputs[i].value !== levels[currentLevel].outputs[i].value) {
-                correct = false;
-                break;
-            }
+        if (!levels[currentLevel] || !levels[currentLevel].outputs) {
+            console.error('No predefined outputs for current level');
+            return;
         }
+
+        outputs.forEach((output, index) => {
+            if (!output || !levels[currentLevel].outputs[index]) {
+                console.error(`Missing output data at index ${index}`);
+                correct = false;
+                return;
+            }
+            if (output.value !== levels[currentLevel].outputs[index].value) {
+                correct = false;
+            }
+        });
     }
 
     if (correct) {
@@ -922,29 +1023,93 @@ function checkAnswer() {
             nextBtn.style.display = 'inline-block';
         }
     } else {
-        showToast('Try again!', 'error');
+        showToast('Some answers are incorrect. Click Show Answer to see the correct values.', 'error');
     }
 }
 
 function showAnswer() {
-    // Show the correct answer without changing the current state
-    if (isTeacherMode) {
-        // In test mode, show the expected outputs
-        outputs.forEach((output, index) => {
-            const expectedOutput = calculateExpectedOutput(index);
-            showToast(`Output ${index + 1} should be ${expectedOutput}`, 'info');
-        });
-    } else {
-        // In play mode, show the level's predefined outputs
-        outputs.forEach((output, index) => {
-            const expectedOutput = levels[currentLevel].outputs[index].value;
-            showToast(`Output ${index + 1} should be ${expectedOutput}`, 'info');
-        });
+    // Remove any existing answer hints
+    removeAnswerHints();
+
+    let allCorrect = true;
+
+    // Show hints only for incorrect outputs
+    outputs.forEach((output, index) => {
+        let expectedOutput;
+        if (isTeacherMode) {
+            expectedOutput = calculateExpectedOutput(index);
+        } else {
+            expectedOutput = levels[currentLevel].outputs[index].value;
+        }
+
+        // Only show hint if the answer is incorrect
+        if (output.value !== expectedOutput) {
+            allCorrect = false;
+            const hint = document.createElement('div');
+            hint.className = 'answer-hint incorrect';
+            hint.style.top = `${output.y - 30}px`; // Position above the output box
+            hint.style.left = `${output.x - 15}px`; // Center align with output box
+            hint.textContent = `${expectedOutput}`;
+
+            // Create additional hint for "Incorrect" text
+            const incorrectHint = document.createElement('div');
+            incorrectHint.className = 'answer-hint incorrect-text';
+            incorrectHint.style.top = `${output.y + 30}px`; // Position below the output box
+            incorrectHint.style.left = `${output.x - 30}px`; // Center align with output box
+            incorrectHint.textContent = 'Incorrect';
+
+            document.getElementById('canvas-container').appendChild(hint);
+            document.getElementById('canvas-container').appendChild(incorrectHint);
+            setTimeout(() => {
+                hint.classList.add('show');
+                incorrectHint.classList.add('show');
+            }, 10);
+        }
+    });
+
+    // If all answers are correct, show a success message
+    if (allCorrect) {
+        showToast('All answers are correct!', 'success');
     }
+
+    // Remove hints after 3 seconds
+    setTimeout(removeAnswerHints, 3000);
+}
+
+function removeAnswerHints() {
+    const hints = document.querySelectorAll('.answer-hint');
+    hints.forEach(hint => {
+        hint.classList.remove('show');
+        setTimeout(() => hint.remove(), 300);
+    });
+}
+
+function findConnectedGate(input) {
+    // Find the gate that this input is connected to
+    const connection = connections.find(conn =>
+        conn.start.x === input.x && conn.start.y === input.y
+    );
+    if (connection) {
+        return gates.find(gate =>
+            abs(connection.end.x - (gate.x - 30)) < 1 &&
+            abs(connection.end.y - gate.y) < 30
+        );
+    }
+    return null;
 }
 
 function calculateExpectedOutput(outputIndex) {
+    if (!gates || !gates[outputIndex]) {
+        console.error(`No gate found at index ${outputIndex}`);
+        return 0;
+    }
+
     const gateInputs = getGateInputs(outputIndex);
+    if (!gateInputs || gateInputs.length === 0) {
+        console.error(`No inputs found for gate at index ${outputIndex}`);
+        return 0;
+    }
+
     switch (currentGateType) {
         case 'AND':
             return gateInputs.every(v => v === 1) ? 1 : 0;
@@ -961,25 +1126,37 @@ function calculateExpectedOutput(outputIndex) {
         case 'XNOR':
             return gateInputs.filter(v => v === 1).length % 2 === 0 ? 1 : 0;
         default:
+            console.error(`Unknown gate type: ${currentGateType}`);
             return 0;
     }
 }
 
 function getGateInputs(outputIndex) {
-    // Get all inputs connected to the gate for this output
+    if (!gates || !gates[outputIndex]) {
+        return [];
+    }
+
     const gate = gates[outputIndex];
     return connections
         .filter(conn =>
+            conn &&
+            conn.end &&
+            gate &&
             abs(conn.end.x - (gate.x - 30)) < 1 &&
             abs(conn.end.y - gate.y) < 30
         )
-        .map(conn => getInputValue(conn.start));
+        .map(conn => getInputValue(conn.start))
+        .filter(value => value !== undefined);
 }
 
 function nextLevel() {
     if (currentLevel < levels.length - 1) {
         currentLevel++;
         loadLevel(currentLevel);
+        updateQuestionNavigation();
+        if (isTeacherMode) {
+            randomizeInputs();
+        }
     } else {
         showToast('Congratulations! You\'ve completed all levels!', 'success');
     }
@@ -1009,12 +1186,29 @@ function randomizeInputs() {
 
 function updateQuestionNavigation() {
     const prevBtn = document.getElementById('prev-question');
-    const nextBtn = document.getElementById('next-question');
+    const nextBtn = document.getElementById('next');
     const questionCount = document.getElementById('question-count');
 
     if (prevBtn && nextBtn && questionCount) {
+        // Update button states
         prevBtn.disabled = currentLevel === 0;
         nextBtn.disabled = currentLevel === levels.length - 1;
+
+        // Update button styles
+        prevBtn.style.opacity = currentLevel === 0 ? '0.5' : '1';
+        prevBtn.style.cursor = currentLevel === 0 ? 'not-allowed' : 'pointer';
+        nextBtn.style.opacity = currentLevel === levels.length - 1 ? '0.5' : '1';
+        nextBtn.style.cursor = currentLevel === levels.length - 1 ? 'not-allowed' : 'pointer';
+
         questionCount.textContent = `Question ${currentLevel + 1} of ${levels.length}`;
+    }
+}
+
+function updateExplanation() {
+    const explanation = document.getElementById('explanation');
+    const explanationText = document.getElementById('explanation-text');
+    if (explanation && explanationText) {
+        explanation.style.display = 'block';
+        explanationText.textContent = gateExplanations[currentGateType] || '';
     }
 } 

@@ -39,35 +39,65 @@
             margin-top: 20px;
         }
 
-        button {
-            background-color: #4CAF50;
-            color: white;
+        .navigation button,
+        .controls button {
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 4px;
             cursor: pointer;
-            margin: 5px;
-            font-size: 16px;
+            font-size: 14px;
             transition: all 0.3s ease;
+            color: white;
         }
 
-        button:hover {
-            background-color: #45a049;
+        #restart {
+            background-color: #FF5722;
+            /* Deep Orange */
+        }
+
+        #check {
+            background-color: #2196F3;
+            /* Blue */
+        }
+
+        #show-answer {
+            background-color: #4CAF50;
+            /* Green */
+        }
+
+        #prev-question,
+        #next {
+            background-color: #9C27B0;
+            /* Purple */
+        }
+
+        .navigation button:hover,
+        .controls button:hover {
+            opacity: 0.9;
             transform: translateY(-2px);
         }
 
-        button:disabled {
+        .navigation button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
             transform: none;
         }
 
-        .explanation {
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
+        .answer-hint {
+            position: absolute;
+            left: 50px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .answer-hint.show {
+            opacity: 1;
         }
 
         .mode-selector {
@@ -244,7 +274,6 @@
                 <div class="slider"></div>
             </div>
             <div class="mode-indicator">Test Mode</div>
-            <button id="save-changes" class="primary-button">Save Changes</button>
         </div>
 
         <div class="gate-selector">
