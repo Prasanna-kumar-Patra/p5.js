@@ -38,8 +38,193 @@ let levels = [
             { x: 600, y: 250, value: 0 }
         ],
         explanation: "Multiple AND gates can be used in parallel. Each gate processes its own inputs independently."
+    },
+    {
+        gates: [
+            { x: 400, y: 150, type: 'AND' },
+            { x: 400, y: 250, type: 'AND' },
+            { x: 400, y: 350, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 100, value: 1 },
+            { x: 200, y: 150, value: 0 },
+            { x: 200, y: 200, value: 1 },
+            { x: 200, y: 250, value: 1 },
+            { x: 200, y: 300, value: 0 },
+            { x: 200, y: 350, value: 1 }
+        ],
+        outputs: [
+            { x: 600, y: 150, value: 0 },
+            { x: 600, y: 250, value: 1 },
+            { x: 600, y: 350, value: 0 }
+        ],
+        explanation: "Three AND gates in parallel. Each gate requires both of its inputs to be 1 to output 1."
+    },
+    {
+        gates: [
+            { x: 400, y: 200, type: 'AND' },
+            { x: 500, y: 200, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 150, value: 1 },
+            { x: 200, y: 250, value: 1 },
+            { x: 300, y: 200, value: 0 }
+        ],
+        outputs: [
+            { x: 600, y: 200, value: 0 }
+        ],
+        explanation: "Two AND gates in series. The output of the first gate becomes an input to the second gate."
+    },
+    {
+        gates: [
+            { x: 400, y: 150, type: 'AND' },
+            { x: 400, y: 250, type: 'AND' },
+            { x: 500, y: 200, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 100, value: 1 },
+            { x: 200, y: 150, value: 1 },
+            { x: 200, y: 200, value: 0 },
+            { x: 200, y: 250, value: 1 },
+            { x: 300, y: 200, value: 1 }
+        ],
+        outputs: [
+            { x: 600, y: 200, value: 0 }
+        ],
+        explanation: "A combination of parallel and series AND gates. The final output depends on all inputs."
+    },
+    {
+        gates: [
+            { x: 400, y: 150, type: 'AND' },
+            { x: 400, y: 250, type: 'AND' },
+            { x: 400, y: 350, type: 'AND' },
+            { x: 500, y: 250, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 100, value: 1 },
+            { x: 200, y: 150, value: 1 },
+            { x: 200, y: 200, value: 0 },
+            { x: 200, y: 250, value: 1 },
+            { x: 200, y: 300, value: 1 },
+            { x: 200, y: 350, value: 0 },
+            { x: 300, y: 250, value: 1 }
+        ],
+        outputs: [
+            { x: 600, y: 250, value: 0 }
+        ],
+        explanation: "A complex arrangement with three parallel AND gates feeding into a fourth gate."
+    },
+    {
+        gates: [
+            { x: 400, y: 150, type: 'AND' },
+            { x: 400, y: 250, type: 'AND' },
+            { x: 500, y: 150, type: 'AND' },
+            { x: 500, y: 250, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 100, value: 1 },
+            { x: 200, y: 150, value: 1 },
+            { x: 200, y: 200, value: 0 },
+            { x: 200, y: 250, value: 1 },
+            { x: 300, y: 150, value: 1 },
+            { x: 300, y: 250, value: 0 }
+        ],
+        outputs: [
+            { x: 600, y: 150, value: 1 },
+            { x: 600, y: 250, value: 0 }
+        ],
+        explanation: "A 2x2 grid of AND gates. Each output depends on the inputs to its corresponding gate."
+    },
+    {
+        gates: [
+            { x: 400, y: 200, type: 'AND' },
+            { x: 500, y: 150, type: 'AND' },
+            { x: 500, y: 250, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 150, value: 1 },
+            { x: 200, y: 250, value: 1 },
+            { x: 300, y: 150, value: 0 },
+            { x: 300, y: 250, value: 1 },
+            { x: 400, y: 200, value: 1 }
+        ],
+        outputs: [
+            { x: 600, y: 150, value: 0 },
+            { x: 600, y: 250, value: 1 }
+        ],
+        explanation: "A branching circuit where one AND gate feeds into two others in parallel."
+    },
+    {
+        gates: [
+            { x: 400, y: 150, type: 'AND' },
+            { x: 400, y: 250, type: 'AND' },
+            { x: 400, y: 350, type: 'AND' },
+            { x: 500, y: 200, type: 'AND' },
+            { x: 500, y: 300, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 100, value: 1 },
+            { x: 200, y: 150, value: 1 },
+            { x: 200, y: 200, value: 0 },
+            { x: 200, y: 250, value: 1 },
+            { x: 200, y: 300, value: 1 },
+            { x: 200, y: 350, value: 0 },
+            { x: 300, y: 200, value: 1 },
+            { x: 300, y: 300, value: 0 }
+        ],
+        outputs: [
+            { x: 600, y: 200, value: 0 },
+            { x: 600, y: 300, value: 0 }
+        ],
+        explanation: "A complex circuit with five AND gates arranged in a pattern that tests multiple combinations."
+    },
+    {
+        gates: [
+            { x: 400, y: 150, type: 'AND' },
+            { x: 400, y: 250, type: 'AND' },
+            { x: 500, y: 200, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 100, value: 1 },
+            { x: 200, y: 150, value: 1 },
+            { x: 200, y: 200, value: 0 },
+            { x: 200, y: 250, value: 1 },
+            { x: 300, y: 200, value: 1 }
+        ],
+        outputs: [
+            { x: 600, y: 200, value: 1 }
+        ],
+        explanation: "A challenge level with three AND gates. The output will be 1 only if specific combinations of inputs are set correctly."
+    },
+    {
+        gates: [
+            { x: 400, y: 150, type: 'AND' },
+            { x: 400, y: 250, type: 'AND' },
+            { x: 400, y: 350, type: 'AND' },
+            { x: 500, y: 200, type: 'AND' },
+            { x: 500, y: 300, type: 'AND' },
+            { x: 600, y: 250, type: 'AND' }
+        ],
+        inputs: [
+            { x: 200, y: 100, value: 1 },
+            { x: 200, y: 150, value: 1 },
+            { x: 200, y: 200, value: 0 },
+            { x: 200, y: 250, value: 1 },
+            { x: 200, y: 300, value: 1 },
+            { x: 200, y: 350, value: 0 },
+            { x: 300, y: 200, value: 1 },
+            { x: 300, y: 300, value: 0 },
+            { x: 400, y: 250, value: 1 }
+        ],
+        outputs: [
+            { x: 700, y: 250, value: 0 }
+        ],
+        explanation: "The final challenge! A complex circuit with six AND gates arranged in a pattern that tests your understanding of AND gate logic."
     }
 ];
+
+// Add current gate type variable
+let currentGateType = 'AND';
 
 function preload() {
     // p5.js preload function - runs first
@@ -62,36 +247,42 @@ function windowLoad() {
 function initializeControls() {
     // Check if all required elements exist first
     const requiredElements = {
-        modeButtons: document.querySelectorAll('.mode-button'),
+        modeToggle: document.querySelector('.mode-toggle'),
         restartBtn: document.getElementById('restart'),
         checkBtn: document.getElementById('check'),
         nextBtn: document.getElementById('next'),
-        modeIndicator: document.querySelector('.mode-indicator')
+        modeIndicator: document.querySelector('.mode-indicator'),
+        saveChangesBtn: document.getElementById('save-changes')
     };
 
     // If any required element is missing, try again later
-    if (!requiredElements.modeButtons.length ||
-        !requiredElements.restartBtn ||
-        !requiredElements.checkBtn ||
-        !requiredElements.nextBtn ||
-        !requiredElements.modeIndicator) {
+    if (!Object.values(requiredElements).every(el => el)) {
         console.log('Waiting for DOM elements...');
         return;
     }
 
     initialized = true;
 
-    // Setup mode buttons
-    requiredElements.modeButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            requiredElements.modeButtons.forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
+    // Setup mode toggle
+    requiredElements.modeToggle.addEventListener('click', () => {
+        const isTest = requiredElements.modeToggle.classList.contains('test');
+        requiredElements.modeToggle.classList.toggle('test');
+        requiredElements.modeToggle.classList.toggle('live');
+        if (isTest) {
+            setPlayMode();
+        } else {
+            setTestMode();
+        }
+    });
 
-            if (e.target.dataset.mode === 'test') {
-                setTestMode();
-            } else {
-                setPlayMode();
-            }
+    // Setup gate selector
+    const gateButtons = document.querySelectorAll('.gate-button');
+    gateButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            gateButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            currentGateType = button.dataset.gate;
+            loadLevel(currentLevel); // Reload level with new gate type
         });
     });
 
@@ -106,6 +297,38 @@ function initializeControls() {
     });
 
     requiredElements.nextBtn.addEventListener('click', nextLevel);
+
+    // Add event listeners for question navigation
+    const prevBtn = document.getElementById('prev-question');
+    const nextBtn = document.getElementById('next-question');
+    const questionCount = document.getElementById('question-count');
+
+    if (prevBtn && nextBtn && questionCount) {
+        prevBtn.addEventListener('click', () => {
+            if (currentLevel > 0) {
+                currentLevel--;
+                loadLevel(currentLevel);
+                updateQuestionNavigation();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentLevel < levels.length - 1) {
+                currentLevel++;
+                loadLevel(currentLevel);
+                updateQuestionNavigation();
+            }
+        });
+    }
+
+    // Add event listener for show answer button
+    const showAnswerBtn = document.getElementById('show-answer');
+    if (showAnswerBtn) {
+        showAnswerBtn.addEventListener('click', showAnswer);
+    }
+
+    // Initial question navigation update
+    updateQuestionNavigation();
 }
 
 function setPlayMode() {
@@ -113,11 +336,21 @@ function setPlayMode() {
     isTeacherMode = false;
     const modeIndicator = document.querySelector('.mode-indicator');
     if (modeIndicator) {
-        modeIndicator.className = 'mode-indicator play-mode';
-        modeIndicator.textContent = 'Play Mode';
+        modeIndicator.textContent = 'Live Mode';
     }
+    document.querySelector('.mode-selector').classList.add('play-mode');
+    document.querySelector('.mode-selector').classList.remove('test-mode');
+
     enableAllInputs();
     loadLevel(currentLevel);
+
+    // Hide check and show-answer buttons in play mode
+    const checkBtn = document.getElementById('check');
+    const showAnswerBtn = document.getElementById('show-answer');
+    if (checkBtn) checkBtn.style.display = 'none';
+    if (showAnswerBtn) showAnswerBtn.style.display = 'none';
+
+    stopRandomInputChanges();
 }
 
 function setTestMode() {
@@ -125,13 +358,22 @@ function setTestMode() {
     isTeacherMode = true;
     const modeIndicator = document.querySelector('.mode-indicator');
     if (modeIndicator) {
-        modeIndicator.className = 'mode-indicator test-mode';
         modeIndicator.textContent = 'Test Mode';
     }
+    document.querySelector('.mode-selector').classList.add('test-mode');
+    document.querySelector('.mode-selector').classList.remove('play-mode');
+
     enableAllInputs();
-    lockInputs();
-    // Unlock outputs in test mode
     outputs.forEach(output => output.locked = false);
+
+    // Show check and show-answer buttons in test mode
+    const checkBtn = document.getElementById('check');
+    const showAnswerBtn = document.getElementById('show-answer');
+    if (checkBtn) checkBtn.style.display = 'inline-block';
+    if (showAnswerBtn) showAnswerBtn.style.display = 'inline-block';
+
+    // Randomize inputs once
+    randomizeInputs();
 }
 
 function enableAllInputs() {
@@ -202,51 +444,153 @@ function loadLevel(level) {
     outputs = [...levels[level].outputs];
     connections = [];
 
-    // Create connections based on level with path points
+    // Reset user-set flags when loading a new level
+    inputs.forEach(input => input.userSet = false);
+    outputs.forEach(output => output.userSet = false);
+
+    // Create connections based on level
     if (level === 0) {
+        // Level 0: Single AND gate with two inputs and one output
         connections = [
-            generatePathPoints(
-                inputs[0],
-                { x: gates[0].x - 30, y: gates[0].y - 10 }
-            ),
-            generatePathPoints(
-                inputs[1],
-                { x: gates[0].x - 30, y: gates[0].y + 10 }
-            ),
-            generatePathPoints(
-                { x: gates[0].x + 30, y: gates[0].y },
-                outputs[0]
-            )
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0])
         ];
     } else if (level === 1) {
+        // Level 1: Two parallel AND gates
         connections = [
-            generatePathPoints(
-                inputs[0],
-                { x: gates[0].x - 30, y: gates[0].y - 10 }
-            ),
-            generatePathPoints(
-                inputs[1],
-                { x: gates[0].x - 30, y: gates[0].y + 10 }
-            ),
-            generatePathPoints(
-                inputs[1],
-                { x: gates[1].x - 30, y: gates[1].y - 10 }
-            ),
-            generatePathPoints(
-                inputs[2],
-                { x: gates[1].x - 30, y: gates[1].y + 10 }
-            ),
-            generatePathPoints(
-                { x: gates[0].x + 30, y: gates[0].y },
-                outputs[0]
-            ),
-            generatePathPoints(
-                { x: gates[1].x + 30, y: gates[1].y },
-                outputs[1]
-            )
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[1], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1])
+        ];
+    } else if (level === 2) {
+        // Level 2: Three parallel AND gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1]),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[2])
+        ];
+    } else if (level === 3) {
+        // Level 3: Two AND gates in series
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[1].x - 30, y: gates[1].y }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[0])
+        ];
+    } else if (level === 4) {
+        // Level 4: Combination of parallel and series gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[0])
+        ];
+    } else if (level === 5) {
+        // Level 5: Three parallel gates feeding into a fourth gate
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[3].x - 30, y: gates[3].y - 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[3].x - 30, y: gates[3].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[3].x - 30, y: gates[3].y + 10 }),
+            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y }),
+            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, outputs[0])
+        ];
+    } else if (level === 6) {
+        // Level 6: 2x2 grid of AND gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, outputs[0]),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[1])
+        ];
+    } else if (level === 7) {
+        // Level 7: Branching circuit
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[1].x - 30, y: gates[1].y }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[3], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[0].x - 30, y: gates[0].y }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, outputs[0]),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[1])
+        ];
+    } else if (level === 8) {
+        // Level 8: Five AND gates in a complex pattern
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y - 10 }),
+            generatePathPoints(inputs[7], { x: gates[4].x - 30, y: gates[4].y - 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[3].x - 30, y: gates[3].y + 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[3].x - 30, y: gates[3].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[4].x - 30, y: gates[4].y + 10 }),
+            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, outputs[0]),
+            generatePathPoints({ x: gates[4].x + 30, y: gates[4].y }, outputs[1])
+        ];
+    } else if (level === 9) {
+        // Level 9: Challenge level with three gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, outputs[0])
+        ];
+    } else if (level === 10) {
+        // Level 10: Final challenge with six gates
+        connections = [
+            generatePathPoints(inputs[0], { x: gates[0].x - 30, y: gates[0].y - 10 }),
+            generatePathPoints(inputs[1], { x: gates[0].x - 30, y: gates[0].y + 10 }),
+            generatePathPoints(inputs[2], { x: gates[1].x - 30, y: gates[1].y - 10 }),
+            generatePathPoints(inputs[3], { x: gates[1].x - 30, y: gates[1].y + 10 }),
+            generatePathPoints(inputs[4], { x: gates[2].x - 30, y: gates[2].y - 10 }),
+            generatePathPoints(inputs[5], { x: gates[2].x - 30, y: gates[2].y + 10 }),
+            generatePathPoints(inputs[6], { x: gates[3].x - 30, y: gates[3].y - 10 }),
+            generatePathPoints(inputs[7], { x: gates[4].x - 30, y: gates[4].y - 10 }),
+            generatePathPoints({ x: gates[0].x + 30, y: gates[0].y }, { x: gates[5].x - 30, y: gates[5].y - 10 }),
+            generatePathPoints({ x: gates[1].x + 30, y: gates[1].y }, { x: gates[5].x - 30, y: gates[5].y }),
+            generatePathPoints({ x: gates[2].x + 30, y: gates[2].y }, { x: gates[5].x - 30, y: gates[5].y + 10 }),
+            generatePathPoints({ x: gates[3].x + 30, y: gates[3].y }, { x: gates[5].x - 30, y: gates[5].y }),
+            generatePathPoints({ x: gates[4].x + 30, y: gates[4].y }, { x: gates[5].x - 30, y: gates[5].y }),
+            generatePathPoints(inputs[8], { x: gates[5].x - 30, y: gates[5].y }),
+            generatePathPoints({ x: gates[5].x + 30, y: gates[5].y }, outputs[0])
         ];
     }
 
+    // Show explanation
     const explanation = document.getElementById('explanation');
     const explanationText = document.getElementById('explanation-text');
     if (explanation && explanationText) {
@@ -427,7 +771,7 @@ function drawGate(gate) {
     noStroke();
     textAlign(CENTER, CENTER);
     textSize(14);
-    text('AND', 0, 0);
+    text(currentGateType, 0, 0);
     pop();
 }
 
@@ -475,7 +819,17 @@ function mousePressed() {
         if (dist(mouseX, mouseY, input.x, input.y) < 15) {
             if (!input.locked) {
                 input.value = 1 - input.value;
-                updateOutputs();
+
+                // Only update outputs in play mode
+                if (isPlayMode) {
+                    updateOutputs();
+                    startFlowAnimation();
+                }
+
+                // In test mode, mark this input as user-set
+                if (isTeacherMode) {
+                    input.userSet = true;
+                }
             }
             return;
         }
@@ -487,6 +841,7 @@ function mousePressed() {
             if (dist(mouseX, mouseY, output.x, output.y) < 15) {
                 if (!output.locked) {
                     output.value = 1 - output.value;
+                    output.userSet = true; // Mark output as user-set
                 }
                 return;
             }
@@ -495,12 +850,18 @@ function mousePressed() {
 }
 
 function updateOutputs() {
-    // Simple AND gate logic
-    if (currentLevel === 0) {
-        outputs[0].value = inputs[0].value && inputs[1].value ? 1 : 0;
-    } else if (currentLevel === 1) {
-        outputs[0].value = inputs[0].value && inputs[1].value ? 1 : 0;
-        outputs[1].value = inputs[1].value && inputs[2].value ? 1 : 0;
+    // In test mode, only update outputs that haven't been set by the user
+    if (isTeacherMode) {
+        outputs.forEach((output, index) => {
+            if (!output.userSet) {
+                output.value = calculateExpectedOutput(index);
+            }
+        });
+    } else {
+        // In play mode, update all outputs
+        outputs.forEach((output, index) => {
+            output.value = calculateExpectedOutput(index);
+        });
     }
 }
 
@@ -565,18 +926,54 @@ function checkAnswer() {
     }
 }
 
-function calculateExpectedOutput(outputIndex) {
-    // Calculate the expected output based on the current inputs
-    if (currentLevel === 0) {
-        return inputs[0].value && inputs[1].value ? 1 : 0;
-    } else if (currentLevel === 1) {
-        if (outputIndex === 0) {
-            return inputs[0].value && inputs[1].value ? 1 : 0;
-        } else {
-            return inputs[1].value && inputs[2].value ? 1 : 0;
-        }
+function showAnswer() {
+    // Show the correct answer without changing the current state
+    if (isTeacherMode) {
+        // In test mode, show the expected outputs
+        outputs.forEach((output, index) => {
+            const expectedOutput = calculateExpectedOutput(index);
+            showToast(`Output ${index + 1} should be ${expectedOutput}`, 'info');
+        });
+    } else {
+        // In play mode, show the level's predefined outputs
+        outputs.forEach((output, index) => {
+            const expectedOutput = levels[currentLevel].outputs[index].value;
+            showToast(`Output ${index + 1} should be ${expectedOutput}`, 'info');
+        });
     }
-    return 0;
+}
+
+function calculateExpectedOutput(outputIndex) {
+    const gateInputs = getGateInputs(outputIndex);
+    switch (currentGateType) {
+        case 'AND':
+            return gateInputs.every(v => v === 1) ? 1 : 0;
+        case 'OR':
+            return gateInputs.some(v => v === 1) ? 1 : 0;
+        case 'NOT':
+            return gateInputs[0] === 0 ? 1 : 0;
+        case 'NAND':
+            return gateInputs.every(v => v === 1) ? 0 : 1;
+        case 'NOR':
+            return gateInputs.some(v => v === 1) ? 0 : 1;
+        case 'XOR':
+            return gateInputs.filter(v => v === 1).length % 2 === 1 ? 1 : 0;
+        case 'XNOR':
+            return gateInputs.filter(v => v === 1).length % 2 === 0 ? 1 : 0;
+        default:
+            return 0;
+    }
+}
+
+function getGateInputs(outputIndex) {
+    // Get all inputs connected to the gate for this output
+    const gate = gates[outputIndex];
+    return connections
+        .filter(conn =>
+            abs(conn.end.x - (gate.x - 30)) < 1 &&
+            abs(conn.end.y - gate.y) < 30
+        )
+        .map(conn => getInputValue(conn.start));
 }
 
 function nextLevel() {
@@ -585,5 +982,39 @@ function nextLevel() {
         loadLevel(currentLevel);
     } else {
         showToast('Congratulations! You\'ve completed all levels!', 'success');
+    }
+}
+
+let randomInputInterval;
+
+function startRandomInputChanges() {
+    // Only randomize once when entering test mode
+    randomizeInputs();
+}
+
+function stopRandomInputChanges() {
+    if (randomInputInterval) {
+        clearInterval(randomInputInterval);
+        randomInputInterval = null;
+    }
+}
+
+function randomizeInputs() {
+    inputs.forEach(input => {
+        if (!input.userSet) {
+            input.value = Math.random() < 0.5 ? 0 : 1;
+        }
+    });
+}
+
+function updateQuestionNavigation() {
+    const prevBtn = document.getElementById('prev-question');
+    const nextBtn = document.getElementById('next-question');
+    const questionCount = document.getElementById('question-count');
+
+    if (prevBtn && nextBtn && questionCount) {
+        prevBtn.disabled = currentLevel === 0;
+        nextBtn.disabled = currentLevel === levels.length - 1;
+        questionCount.textContent = `Question ${currentLevel + 1} of ${levels.length}`;
     }
 } 
