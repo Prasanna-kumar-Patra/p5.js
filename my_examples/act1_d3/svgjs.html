@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Logic Gates - SVG.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
+    <style>
+        :root {
+            --primary-blue: #2952BD;
+            --primary-teal: #61C4B3;
+            --primary-teal-dark: #27A89A;
+            --gray-light: #B3B3B3;
+            --gray-dark: #4C4C4C;
+            --white: #FFFFFF;
+            --black: #000000;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'CoFo Brilliant', system-ui, sans-serif;
+            background-color: #f5f5f5;
+            color: var(--black);
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            padding: 20px;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--black);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        p {
+            color: var(--gray-dark);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        .navigation button,
+        .controls button {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: var(--white);
+            font-family: inherit;
+        }
+
+        #restart {
+            background-color: var(--primary-teal);
+        }
+
+        #check {
+            background-color: var(--primary-blue);
+        }
+
+        #show-answer {
+            background-color: var(--primary-teal-dark);
+        }
+
+        #prev-question,
+        #next {
+            background-color: var(--primary-blue);
+        }
+
+        .navigation button:hover,
+        .controls button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .navigation button:disabled {
+            background-color: var(--gray-light);
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.7;
+        }
+
+        .mode-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mode-toggle {
+            position: relative;
+            width: 200px;
+            height: 40px;
+            background-color: var(--gray-light);
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .mode-toggle span {
+            z-index: 1;
+            color: var(--white);
+            font-weight: 500;
+            padding: 0 10px;
+        }
+
+        .mode-toggle .slider {
+            position: absolute;
+            width: 50%;
+            height: 34px;
+            background-color: var(--white);
+            border-radius: 17px;
+            transition: transform 0.3s ease;
+            left: 3px;
+        }
+
+        .mode-toggle.test .slider {
+            transform: translateX(0);
+        }
+
+        .mode-toggle.live .slider {
+            transform: translateX(94px);
+        }
+
+        .mode-indicator {
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+        }
+
+        .play-mode .mode-indicator {
+            color: var(--primary-teal);
+        }
+
+        .test-mode .mode-indicator {
+            color: var(--primary-blue);
+        }
+
+        .gate-selector {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .gate-button {
+            padding: 8px 20px;
+            border: 2px solid var(--primary-teal);
+            border-radius: 4px;
+            background: var(--white);
+            color: var(--primary-teal);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-weight: 500;
+        }
+
+        .gate-button.active {
+            background: var(--primary-teal);
+            color: var(--white);
+        }
+
+        .gate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #question-count {
+            font-weight: 500;
+            color: var(--gray-dark);
+        }
+
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .explanation h3 {
+            color: var(--black);
+            margin-top: 0;
+            font-weight: 500;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 800px;
+            height: 400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background-color: var(--white);
+            color: var(--black);
+            padding: 12px 24px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+            max-width: 300px;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            font-weight: 500;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--primary-teal);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--gray-dark);
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Logic Gates</h1>
+        <p>There are millions of logic gates inside every modern computer. Let's see how they work.</p>
+
+        <div class="mode-selector">
+            <div class="mode-toggle test">
+                <span>Test</span>
+                <span>Live</span>
+                <div class="slider"></div>
+            </div>
+            <div class="mode-indicator">Test Mode</div>
+        </div>
+
+        <div class="gate-selector">
+            <button class="gate-button active" data-gate="AND">AND</button>
+            <button class="gate-button" data-gate="OR">OR</button>
+            <button class="gate-button" data-gate="NOT">NOT</button>
+            <button class="gate-button" data-gate="NAND">NAND</button>
+            <button class="gate-button" data-gate="NOR">NOR</button>
+            <button class="gate-button" data-gate="XOR">XOR</button>
+            <button class="gate-button" data-gate="XNOR">XNOR</button>
+        </div>
+
+        <div id="canvas-container"></div>
+
+        <div class="navigation">
+            <div class="nav-group">
+                <button id="restart">Restart</button>
+                <button id="check">Check</button>
+                <button id="show-answer">Show Answer</button>
+            </div>
+            <div class="nav-group">
+                <span id="question-count">Question 1 of 11</span>
+                <button id="prev-question">Previous</button>
+                <button id="next">Next</button>
+            </div>
+        </div>
+
+        <div class="explanation" id="explanation">
+            <h3>Explanation</h3>
+            <p id="explanation-text"></p>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // Initialize SVG.js
+        const draw = SVG().addTo('#canvas-container').size(800, 400);
+
+        // Game state
+        let currentLevel = 0;
+        let gates = [];
+        let inputs = [];
+        let outputs = [];
+        let connections = [];
+        let isPlayMode = true;
+        let isTeacherMode = false;
+        let currentGateType = 'AND';
+        let hasCheckedAnswer = false;
+
+        // Color constants
+        const COLORS = {
+            primaryBlue: '#2952BD',
+            primaryTeal: '#61C4B3',
+            primaryTealDark: '#27A89A',
+            grayLight: '#B3B3B3',
+            grayDark: '#4C4C4C',
+            white: '#FFFFFF',
+            black: '#000000',
+            signalOne: {
+                fill: '#2952BD',
+                border: '#1A3A8F'
+            },
+            signalZero: {
+                fill: '#FF6666',
+                border: '#CC3333'
+            }
+        };
+
+        // Level definitions
+        const levels = [
+            {
+                gates: [{ x: 400, y: 200, type: 'AND' }],
+                inputs: [
+                    { x: 200, y: 150, value: 0 },
+                    { x: 200, y: 250, value: 1 }
+                ],
+                outputs: [{ x: 600, y: 200, value: 0 }],
+                explanation: "An AND gate outputs 1 when both inputs are 1, otherwise it outputs 0."
+            },
+            {
+                gates: [
+                    { x: 400, y: 150, type: 'AND' },
+                    { x: 400, y: 250, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 100, value: 1 },
+                    { x: 200, y: 200, value: 1 },
+                    { x: 200, y: 300, value: 0 }
+                ],
+                outputs: [
+                    { x: 600, y: 150, value: 1 },
+                    { x: 600, y: 250, value: 0 }
+                ],
+                explanation: "Multiple AND gates can be used in parallel. Each gate processes its own inputs independently."
+            },
+            {
+                gates: [
+                    { x: 400, y: 150, type: 'AND' },
+                    { x: 400, y: 250, type: 'AND' },
+                    { x: 400, y: 350, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 100, value: 1 },
+                    { x: 200, y: 150, value: 0 },
+                    { x: 200, y: 200, value: 1 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 200, y: 300, value: 0 },
+                    { x: 200, y: 350, value: 1 }
+                ],
+                outputs: [
+                    { x: 600, y: 150, value: 0 },
+                    { x: 600, y: 250, value: 1 },
+                    { x: 600, y: 350, value: 0 }
+                ],
+                explanation: "Three AND gates in parallel. Each gate requires both of its inputs to be 1 to output 1."
+            },
+            {
+                gates: [
+                    { x: 400, y: 200, type: 'AND' },
+                    { x: 500, y: 200, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 150, value: 1 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 300, y: 200, value: 0 }
+                ],
+                outputs: [
+                    { x: 600, y: 200, value: 0 }
+                ],
+                explanation: "Two AND gates in series. The output of the first gate becomes an input to the second gate."
+            },
+            {
+                gates: [
+                    { x: 400, y: 150, type: 'AND' },
+                    { x: 400, y: 250, type: 'AND' },
+                    { x: 500, y: 200, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 100, value: 1 },
+                    { x: 200, y: 150, value: 1 },
+                    { x: 200, y: 200, value: 0 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 300, y: 200, value: 1 }
+                ],
+                outputs: [
+                    { x: 600, y: 200, value: 0 }
+                ],
+                explanation: "A combination of parallel and series AND gates. The final output depends on all inputs."
+            },
+            {
+                gates: [
+                    { x: 400, y: 150, type: 'AND' },
+                    { x: 400, y: 250, type: 'AND' },
+                    { x: 400, y: 350, type: 'AND' },
+                    { x: 500, y: 250, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 100, value: 1 },
+                    { x: 200, y: 150, value: 1 },
+                    { x: 200, y: 200, value: 0 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 200, y: 300, value: 1 },
+                    { x: 200, y: 350, value: 0 },
+                    { x: 300, y: 250, value: 1 }
+                ],
+                outputs: [
+                    { x: 600, y: 250, value: 0 }
+                ],
+                explanation: "A complex arrangement with three parallel AND gates feeding into a fourth gate."
+            },
+            {
+                gates: [
+                    { x: 400, y: 150, type: 'AND' },
+                    { x: 400, y: 250, type: 'AND' },
+                    { x: 500, y: 150, type: 'AND' },
+                    { x: 500, y: 250, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 100, value: 1 },
+                    { x: 200, y: 150, value: 1 },
+                    { x: 200, y: 200, value: 0 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 300, y: 150, value: 1 },
+                    { x: 300, y: 250, value: 0 }
+                ],
+                outputs: [
+                    { x: 600, y: 150, value: 1 },
+                    { x: 600, y: 250, value: 0 }
+                ],
+                explanation: "A 2x2 grid of AND gates. Each output depends on the inputs to its corresponding gate."
+            },
+            {
+                gates: [
+                    { x: 400, y: 200, type: 'AND' },
+                    { x: 500, y: 150, type: 'AND' },
+                    { x: 500, y: 250, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 150, value: 1 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 300, y: 150, value: 0 },
+                    { x: 300, y: 250, value: 1 },
+                    { x: 400, y: 200, value: 1 }
+                ],
+                outputs: [
+                    { x: 600, y: 150, value: 0 },
+                    { x: 600, y: 250, value: 1 }
+                ],
+                explanation: "A branching circuit where one AND gate feeds into two others in parallel."
+            },
+            {
+                gates: [
+                    { x: 400, y: 150, type: 'AND' },
+                    { x: 400, y: 250, type: 'AND' },
+                    { x: 400, y: 350, type: 'AND' },
+                    { x: 500, y: 200, type: 'AND' },
+                    { x: 500, y: 300, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 100, value: 1 },
+                    { x: 200, y: 150, value: 1 },
+                    { x: 200, y: 200, value: 0 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 200, y: 300, value: 1 },
+                    { x: 200, y: 350, value: 0 },
+                    { x: 300, y: 200, value: 1 },
+                    { x: 300, y: 300, value: 0 }
+                ],
+                outputs: [
+                    { x: 600, y: 200, value: 0 },
+                    { x: 600, y: 300, value: 0 }
+                ],
+                explanation: "A complex circuit with five AND gates arranged in a pattern that tests multiple combinations."
+            },
+            {
+                gates: [
+                    { x: 400, y: 150, type: 'AND' },
+                    { x: 400, y: 250, type: 'AND' },
+                    { x: 500, y: 200, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 100, value: 1 },
+                    { x: 200, y: 150, value: 1 },
+                    { x: 200, y: 200, value: 0 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 300, y: 200, value: 1 }
+                ],
+                outputs: [
+                    { x: 600, y: 200, value: 1 }
+                ],
+                explanation: "A challenge level with three AND gates. The output will be 1 only if specific combinations of inputs are set correctly."
+            },
+            {
+                gates: [
+                    { x: 400, y: 150, type: 'AND' },
+                    { x: 400, y: 250, type: 'AND' },
+                    { x: 400, y: 350, type: 'AND' },
+                    { x: 500, y: 200, type: 'AND' },
+                    { x: 500, y: 300, type: 'AND' },
+                    { x: 600, y: 250, type: 'AND' }
+                ],
+                inputs: [
+                    { x: 200, y: 100, value: 1 },
+                    { x: 200, y: 150, value: 1 },
+                    { x: 200, y: 200, value: 0 },
+                    { x: 200, y: 250, value: 1 },
+                    { x: 200, y: 300, value: 1 },
+                    { x: 200, y: 350, value: 0 },
+                    { x: 300, y: 200, value: 1 },
+                    { x: 300, y: 300, value: 0 },
+                    { x: 400, y: 250, value: 1 }
+                ],
+                outputs: [
+                    { x: 700, y: 250, value: 0 }
+                ],
+                explanation: "The final challenge! A complex circuit with six AND gates arranged in a pattern that tests your understanding of AND gate logic."
+            }
+        ];
+
+        // Initialize the game
+        function init() {
+            loadLevel(currentLevel);
+            setupEventListeners();
+        }
+
+        // Load a level
+        function loadLevel(level) {
+            // Clear previous elements
+            draw.clear();
+            gates = [];
+            inputs = [];
+            outputs = [];
+            connections = [];
+
+            const levelData = levels[level];
+            if (!levelData) return;
+
+            // Create gates
+            levelData.gates.forEach(gateData => {
+                const gate = createGate(gateData.x, gateData.y, gateData.type);
+                gates.push(gate);
+            });
+
+            // Create inputs
+            levelData.inputs.forEach(inputData => {
+                const input = createInput(inputData.x, inputData.y, inputData.value);
+                inputs.push(input);
+            });
+
+            // Create outputs
+            levelData.outputs.forEach(outputData => {
+                const output = createOutput(outputData.x, outputData.y, outputData.value);
+                outputs.push(output);
+            });
+
+            // Create connections
+            createConnections();
+
+            // Update explanation
+            document.getElementById('explanation-text').textContent = levelData.explanation;
+        }
+
+        // Create a gate element
+        function createGate(x, y, type) {
+            const group = draw.group();
+
+            // Gate body
+            const body = group.rect(48, 32)
+                .move(x - 24, y - 16)
+                .fill(COLORS.primaryTeal)
+                .stroke({ color: COLORS.primaryTealDark, width: 2 })
+                .radius(4);
+
+            // Gate text
+            const text = group.text(type)
+                .font({
+                    family: 'CoFo Brilliant, system-ui, sans-serif',
+                    size: 13
+                })
+                .center(x, y);
+
+            return {
+                group,
+                body,
+                text,
+                x,
+                y,
+                type
+            };
+        }
+
+        // Create an input element
+        function createInput(x, y, value) {
+            const group = draw.group();
+
+            // Input circle
+            const circle = group.circle(24)
+                .center(x, y)
+                .fill(value ? COLORS.signalOne.fill : COLORS.signalZero.fill)
+                .stroke({ color: value ? COLORS.signalOne.border : COLORS.signalZero.border, width: 2 });
+
+            // Input value text
+            const text = group.text(value.toString())
+                .font({
+                    family: 'CoFo Brilliant, system-ui, sans-serif',
+                    size: 16
+                })
+                .fill(COLORS.white)
+                .center(x, y);
+
+            return {
+                group,
+                circle,
+                text,
+                x,
+                y,
+                value,
+                locked: false
+            };
+        }
+
+        // Create an output element
+        function createOutput(x, y, value) {
+            const group = draw.group();
+
+            // Output square
+            const square = group.rect(44, 44)
+                .move(x - 22, y - 22)
+                .fill(value ? COLORS.signalOne.fill : COLORS.signalZero.fill)
+                .stroke({ color: value ? COLORS.signalOne.border : COLORS.signalZero.border, width: 2 })
+                .radius(6);
+
+            // Output value text
+            const text = group.text(value.toString())
+                .font({
+                    family: 'CoFo Brilliant, system-ui, sans-serif',
+                    size: 22
+                })
+                .fill(COLORS.white)
+                .center(x, y);
+
+            return {
+                group,
+                square,
+                text,
+                x,
+                y,
+                value,
+                locked: false
+            };
+        }
+
+        // Create connections between elements
+        function createConnections() {
+            const levelData = levels[currentLevel];
+            if (!levelData) return;
+
+            if (currentLevel === 0) {
+                // Level 0: Single AND gate with two inputs and one output
+                const gate = gates[0];
+                inputs.forEach((input, index) => {
+                    const connection = createConnection(
+                        input.x, input.y,
+                        gate.x - 24, gate.y - 16 + (index * 32),
+                        input.value
+                    );
+                    connections.push(connection);
+                });
+
+                const output = outputs[0];
+                const connection = createConnection(
+                    gate.x + 24, gate.y,
+                    output.x - 22, output.y,
+                    output.value
+                );
+                connections.push(connection);
+            } else if (currentLevel === 1) {
+                // Level 1: Two parallel AND gates
+                inputs.forEach((input, index) => {
+                    const gateIndex = Math.floor(index / 2);
+                    const gate = gates[gateIndex];
+                    const connection = createConnection(
+                        input.x, input.y,
+                        gate.x - 24, gate.y - 16 + ((index % 2) * 32),
+                        input.value
+                    );
+                    connections.push(connection);
+                });
+
+                gates.forEach((gate, index) => {
+                    const output = outputs[index];
+                    const connection = createConnection(
+                        gate.x + 24, gate.y,
+                        output.x - 22, output.y,
+                        output.value
+                    );
+                    connections.push(connection);
+                });
+            } else if (currentLevel === 2) {
+                // Level 2: Three parallel AND gates
+                inputs.forEach((input, index) => {
+                    const gateIndex = Math.floor(index / 2);
+                    const gate = gates[gateIndex];
+                    const connection = createConnection(
+                        input.x, input.y,
+                        gate.x - 24, gate.y - 16 + ((index % 2) * 32),
+                        input.value
+                    );
+                    connections.push(connection);
+                });
+
+                gates.forEach((gate, index) => {
+                    const output = outputs[index];
+                    const connection = createConnection(
+                        gate.x + 24, gate.y,
+                        output.x - 22, output.y,
+                        output.value
+                    );
+                    connections.push(connection);
+                });
+            } else if (currentLevel === 3) {
+                // Level 3: Two AND gates in series
+                const [gate1, gate2] = gates;
+                const [input1, input2, input3] = inputs;
+
+                // Connect first two inputs to first gate
+                const conn1 = createConnection(input1.x, input1.y, gate1.x - 24, gate1.y - 16, input1.value);
+                const conn2 = createConnection(input2.x, input2.y, gate1.x - 24, gate1.y + 16, input2.value);
+                connections.push(conn1, conn2);
+
+                // Connect first gate output to second gate input
+                const conn3 = createConnection(gate1.x + 24, gate1.y, gate2.x - 24, gate2.y, 0);
+                connections.push(conn3);
+
+                // Connect third input to second gate
+                const conn4 = createConnection(input3.x, input3.y, gate2.x - 24, gate2.y + 16, input3.value);
+                connections.push(conn4);
+
+                // Connect second gate to output
+                const conn5 = createConnection(gate2.x + 24, gate2.y, outputs[0].x - 22, outputs[0].y, 0);
+                connections.push(conn5);
+            } else if (currentLevel === 4) {
+                // Level 4: Combination of parallel and series gates
+                const [gate1, gate2, gate3] = gates;
+                const [input1, input2, input3, input4, input5] = inputs;
+
+                // Connect inputs to first two gates
+                const conn1 = createConnection(input1.x, input1.y, gate1.x - 24, gate1.y - 16, input1.value);
+                const conn2 = createConnection(input2.x, input2.y, gate1.x - 24, gate1.y + 16, input2.value);
+                const conn3 = createConnection(input3.x, input3.y, gate2.x - 24, gate2.y - 16, input3.value);
+                const conn4 = createConnection(input4.x, input4.y, gate2.x - 24, gate2.y + 16, input4.value);
+                connections.push(conn1, conn2, conn3, conn4);
+
+                // Connect first two gates to third gate
+                const conn5 = createConnection(gate1.x + 24, gate1.y, gate3.x - 24, gate3.y - 16, 0);
+                const conn6 = createConnection(gate2.x + 24, gate2.y, gate3.x - 24, gate3.y + 16, 0);
+                connections.push(conn5, conn6);
+
+                // Connect fifth input to third gate
+                const conn7 = createConnection(input5.x, input5.y, gate3.x - 24, gate3.y, input5.value);
+                connections.push(conn7);
+
+                // Connect third gate to output
+                const conn8 = createConnection(gate3.x + 24, gate3.y, outputs[0].x - 22, outputs[0].y, 0);
+                connections.push(conn8);
+            } else if (currentLevel === 5) {
+                // Level 5: Three parallel gates feeding into a fourth gate
+                const [gate1, gate2, gate3, gate4] = gates;
+                const [input1, input2, input3, input4, input5, input6, input7] = inputs;
+
+                // Connect inputs to first three gates
+                inputs.slice(0, 6).forEach((input, index) => {
+                    const gateIndex = Math.floor(index / 2);
+                    const gate = gates[gateIndex];
+                    const connection = createConnection(
+                        input.x, input.y,
+                        gate.x - 24, gate.y - 16 + ((index % 2) * 32),
+                        input.value
+                    );
+                    connections.push(connection);
+                });
+
+                // Connect first three gates to fourth gate
+                gates.slice(0, 3).forEach((gate, index) => {
+                    const connection = createConnection(
+                        gate.x + 24, gate.y,
+                        gate4.x - 24, gate4.y - 16 + (index * 16),
+                        0
+                    );
+                    connections.push(connection);
+                });
+
+                // Connect seventh input to fourth gate
+                const conn7 = createConnection(input7.x, input7.y, gate4.x - 24, gate4.y, input7.value);
+                connections.push(conn7);
+
+                // Connect fourth gate to output
+                const conn8 = createConnection(gate4.x + 24, gate4.y, outputs[0].x - 22, outputs[0].y, 0);
+                connections.push(conn8);
+            } else if (currentLevel === 6) {
+                // Level 6: 2x2 grid of AND gates
+                const [gate1, gate2, gate3, gate4] = gates;
+                const [input1, input2, input3, input4, input5, input6] = inputs;
+
+                // Connect inputs to gates
+                inputs.slice(0, 4).forEach((input, index) => {
+                    const gateIndex = Math.floor(index / 2);
+                    const gate = gates[gateIndex];
+                    const connection = createConnection(
+                        input.x, input.y,
+                        gate.x - 24, gate.y - 16 + ((index % 2) * 32),
+                        input.value
+                    );
+                    connections.push(connection);
+                });
+
+                inputs.slice(4, 6).forEach((input, index) => {
+                    const gateIndex = index + 2;
+                    const gate = gates[gateIndex];
+                    const connection = createConnection(
+                        input.x, input.y,
+                        gate.x - 24, gate.y - 16,
+                        input.value
+                    );
+                    connections.push(connection);
+                });
+
+                // Connect gates to outputs
+                gates.slice(0, 2).forEach((gate, index) => {
+                    const output = outputs[index];
+                    const connection = createConnection(
+                        gate.x + 24, gate.y,
+                        output.x - 22, output.y,
+                        0
+                    );
+                    connections.push(connection);
+                });
+            } else if (currentLevel === 7) {
+                // Level 7: Branching circuit
+                const [gate1, gate2, gate3] = gates;
+                const [input1, input2, input3, input4, input5] = inputs;
+
+                // Connect first two inputs to first gate
+                const conn1 = createConnection(input1.x, input1.y, gate1.x - 24, gate1.y - 16, input1.value);
+                const conn2 = createConnection(input2.x, input2.y, gate1.x - 24, gate1.y + 16, input2.value);
+                connections.push(conn1, conn2);
+
+                // Connect first gate to second and third gates
+                const conn3 = createConnection(gate1.x + 24, gate1.y, gate2.x - 24, gate2.y, 0);
+                const conn4 = createConnection(gate1.x + 24, gate1.y, gate3.x - 24, gate3.y, 0);
+                connections.push(conn3, conn4);
+
+                // Connect third and fourth inputs to second and third gates
+                const conn5 = createConnection(input3.x, input3.y, gate2.x - 24, gate2.y + 16, input3.value);
+                const conn6 = createConnection(input4.x, input4.y, gate3.x - 24, gate3.y + 16, input4.value);
+                connections.push(conn5, conn6);
+
+                // Connect fifth input to first gate
+                const conn7 = createConnection(input5.x, input5.y, gate1.x - 24, gate1.y, input5.value);
+                connections.push(conn7);
+
+                // Connect second and third gates to outputs
+                const conn8 = createConnection(gate2.x + 24, gate2.y, outputs[0].x - 22, outputs[0].y, 0);
+                const conn9 = createConnection(gate3.x + 24, gate3.y, outputs[1].x - 22, outputs[1].y, 0);
+                connections.push(conn8, conn9);
+            } else if (currentLevel === 8) {
+                // Level 8: Five AND gates in a complex pattern
+                const [gate1, gate2, gate3, gate4, gate5] = gates;
+                const [input1, input2, input3, input4, input5, input6, input7, input8] = inputs;
+
+                // Connect inputs to first three gates
+                inputs.slice(0, 6).forEach((input, index) => {
+                    const gateIndex = Math.floor(index / 2);
+                    const gate = gates[gateIndex];
+                    const connection = createConnection(
+                        input.x, input.y,
+                        gate.x - 24, gate.y - 16 + ((index % 2) * 32),
+                        input.value
+                    );
+                    connections.push(connection);
+                });
+
+                // Connect seventh and eighth inputs to fourth and fifth gates
+                const conn7 = createConnection(input7.x, input7.y, gate4.x - 24, gate4.y - 16, input7.value);
+                const conn8 = createConnection(input8.x, input8.y, gate5.x - 24, gate5.y - 16, input8.value);
+                connections.push(conn7, conn8);
+
+                // Connect first three gates to fourth and fifth gates
+                const conn9 = createConnection(gate1.x + 24, gate1.y, gate4.x - 24, gate4.y + 16, 0);
+                const conn10 = createConnection(gate2.x + 24, gate2.y, gate4.x - 24, gate4.y, 0);
+                const conn11 = createConnection(gate3.x + 24, gate3.y, gate5.x - 24, gate5.y + 16, 0);
+                connections.push(conn9, conn10, conn11);
+
+                // Connect fourth and fifth gates to outputs
+                const conn12 = createConnection(gate4.x + 24, gate4.y, outputs[0].x - 22, outputs[0].y, 0);
+                const conn13 = createConnection(gate5.x + 24, gate5.y, outputs[1].x - 22, outputs[1].y, 0);
+                connections.push(conn12, conn13);
+            } else if (currentLevel === 9) {
+                // Level 9: Challenge level with three gates
+                const [gate1, gate2, gate3] = gates;
+                const [input1, input2, input3, input4, input5] = inputs;
+
+                // Connect first two inputs to first gate
+                const conn1 = createConnection(input1.x, input1.y, gate1.x - 24, gate1.y - 16, input1.value);
+                const conn2 = createConnection(input2.x, input2.y, gate1.x - 24, gate1.y + 16, input2.value);
+                connections.push(conn1, conn2);
+
+                // Connect third and fourth inputs to second gate
+                const conn3 = createConnection(input3.x, input3.y, gate2.x - 24, gate2.y - 16, input3.value);
+                const conn4 = createConnection(input4.x, input4.y, gate2.x - 24, gate2.y + 16, input4.value);
+                connections.push(conn3, conn4);
+
+                // Connect first and second gates to third gate
+                const conn5 = createConnection(gate1.x + 24, gate1.y, gate3.x - 24, gate3.y - 16, 0);
+                const conn6 = createConnection(gate2.x + 24, gate2.y, gate3.x - 24, gate3.y + 16, 0);
+                connections.push(conn5, conn6);
+
+                // Connect fifth input to third gate
+                const conn7 = createConnection(input5.x, input5.y, gate3.x - 24, gate3.y, input5.value);
+                connections.push(conn7);
+
+                // Connect third gate to output
+                const conn8 = createConnection(gate3.x + 24, gate3.y, outputs[0].x - 22, outputs[0].y, 0);
+                connections.push(conn8);
+            } else if (currentLevel === 10) {
+                // Level 10: Final challenge with six gates
+                const [gate1, gate2, gate3, gate4, gate5, gate6] = gates;
+                const [input1, input2, input3, input4, input5, input6, input7, input8, input9] = inputs;
+
+                // Connect inputs to first three gates
+                inputs.slice(0, 6).forEach((input, index) => {
+                    const gateIndex = Math.floor(index / 2);
+                    const gate = gates[gateIndex];
+                    const connection = createConnection(
+                        input.x, input.y,
+                        gate.x - 24, gate.y - 16 + ((index % 2) * 32),
+                        input.value
+                    );
+                    connections.push(connection);
+                });
+
+                // Connect seventh and eighth inputs to fourth and fifth gates
+                const conn7 = createConnection(input7.x, input7.y, gate4.x - 24, gate4.y - 16, input7.value);
+                const conn8 = createConnection(input8.x, input8.y, gate5.x - 24, gate5.y - 16, input8.value);
+                connections.push(conn7, conn8);
+
+                // Connect first three gates to sixth gate
+                const conn9 = createConnection(gate1.x + 24, gate1.y, gate6.x - 24, gate6.y - 16, 0);
+                const conn10 = createConnection(gate2.x + 24, gate2.y, gate6.x - 24, gate6.y, 0);
+                const conn11 = createConnection(gate3.x + 24, gate3.y, gate6.x - 24, gate6.y + 16, 0);
+                connections.push(conn9, conn10, conn11);
+
+                // Connect fourth and fifth gates to sixth gate
+                const conn12 = createConnection(gate4.x + 24, gate4.y, gate6.x - 24, gate6.y, 0);
+                const conn13 = createConnection(gate5.x + 24, gate5.y, gate6.x - 24, gate6.y, 0);
+                connections.push(conn12, conn13);
+
+                // Connect ninth input to sixth gate
+                const conn14 = createConnection(input9.x, input9.y, gate6.x - 24, gate6.y, input9.value);
+                connections.push(conn14);
+
+                // Connect sixth gate to output
+                const conn15 = createConnection(gate6.x + 24, gate6.y, outputs[0].x - 22, outputs[0].y, 0);
+                connections.push(conn15);
+            }
+        }
+
+        // Create a connection between two points
+        function createConnection(x1, y1, x2, y2, value) {
+            const path = draw.path()
+                .stroke({ color: value ? COLORS.signalOne.fill : COLORS.signalZero.fill, width: 2 })
+                .fill('none');
+
+            // Create a curved path
+            const midX = (x1 + x2) / 2;
+            path.plot(`M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`);
+
+            return {
+                path,
+                start: { x: x1, y: y1 },
+                end: { x: x2, y: y2 },
+                value
+            };
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Mode toggle
+            document.querySelector('.mode-toggle').addEventListener('click', toggleMode);
+
+            // Gate selector buttons
+            document.querySelectorAll('.gate-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.gate-button').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    currentGateType = button.dataset.gate;
+                    loadLevel(currentLevel);
+                });
+            });
+
+            // Navigation buttons
+            document.getElementById('restart').addEventListener('click', () => loadLevel(currentLevel));
+            document.getElementById('check').addEventListener('click', checkAnswer);
+            document.getElementById('show-answer').addEventListener('click', showAnswer);
+            document.getElementById('prev-question').addEventListener('click', previousLevel);
+            document.getElementById('next').addEventListener('click', nextLevel);
+
+            // Input click handlers
+            inputs.forEach(input => {
+                input.group.on('click', () => {
+                    if (!input.locked) {
+                        input.value = 1 - input.value;
+                        updateInput(input);
+                        updateConnections();
+                        updateOutputs();
+                    }
+                });
+            });
+        }
+
+        // Toggle between test and live mode
+        function toggleMode() {
+            const modeToggle = document.querySelector('.mode-toggle');
+            const modeIndicator = document.querySelector('.mode-indicator');
+
+            modeToggle.classList.toggle('test');
+            modeToggle.classList.toggle('live');
+
+            isPlayMode = !isPlayMode;
+            isTeacherMode = !isTeacherMode;
+
+            modeIndicator.textContent = isPlayMode ? 'Live Mode' : 'Test Mode';
+
+            if (isTeacherMode) {
+                randomizeInputs();
+            }
+        }
+
+        // Update input appearance
+        function updateInput(input) {
+            input.circle.fill(input.value ? COLORS.signalOne.fill : COLORS.signalZero.fill)
+                .stroke({ color: input.value ? COLORS.signalOne.border : COLORS.signalZero.border, width: 2 });
+            input.text.text(input.value.toString());
+        }
+
+        // Update connections
+        function updateConnections() {
+            connections.forEach(connection => {
+                const value = getConnectionValue(connection);
+                connection.path.stroke({ color: value ? COLORS.signalOne.fill : COLORS.signalZero.fill, width: 2 });
+                connection.value = value;
+            });
+        }
+
+        // Get value for a connection
+        function getConnectionValue(connection) {
+            // Find the input or gate output that this connection starts from
+            const startInput = inputs.find(input =>
+                input.x === connection.start.x && input.y === connection.start.y
+            );
+
+            if (startInput) {
+                return startInput.value;
+            }
+
+            // If not an input, it must be a gate output
+            const gate = gates.find(gate =>
+                gate.x + 24 === connection.start.x && gate.y === connection.start.y
+            );
+
+            if (gate) {
+                return calculateGateOutput(gate);
+            }
+
+            return 0;
+        }
+
+        // Calculate gate output
+        function calculateGateOutput(gate) {
+            const gateInputs = getGateInputs(gate);
+
+            switch (currentGateType) {
+                case 'AND':
+                    return gateInputs.every(v => v === 1) ? 1 : 0;
+                case 'OR':
+                    return gateInputs.some(v => v === 1) ? 1 : 0;
+                case 'NOT':
+                    return gateInputs[0] === 0 ? 1 : 0;
+                case 'NAND':
+                    return gateInputs.every(v => v === 1) ? 0 : 1;
+                case 'NOR':
+                    return gateInputs.some(v => v === 1) ? 0 : 1;
+                case 'XOR':
+                    return gateInputs.filter(v => v === 1).length % 2 === 1 ? 1 : 0;
+                case 'XNOR':
+                    return gateInputs.filter(v => v === 1).length % 2 === 0 ? 1 : 0;
+                default:
+                    return 0;
+            }
+        }
+
+        // Get inputs for a gate
+        function getGateInputs(gate) {
+            return connections
+                .filter(conn => conn.end.x === gate.x - 24)
+                .map(conn => conn.value);
+        }
+
+        // Update outputs
+        function updateOutputs() {
+            outputs.forEach(output => {
+                if (!output.locked) {
+                    const connection = connections.find(conn =>
+                        conn.end.x === output.x - 22 && conn.end.y === output.y
+                    );
+
+                    if (connection) {
+                        output.value = connection.value;
+                        output.square.fill(output.value ? COLORS.signalOne.fill : COLORS.signalZero.fill)
+                            .stroke({ color: output.value ? COLORS.signalOne.border : COLORS.signalZero.border, width: 2 });
+                        output.text.text(output.value.toString());
+                    }
+                }
+            });
+        }
+
+        // Check answer
+        function checkAnswer() {
+            hasCheckedAnswer = true;
+            let correct = true;
+
+            outputs.forEach(output => {
+                const expectedOutput = calculateExpectedOutput(output);
+                if (output.value !== expectedOutput) {
+                    correct = false;
+                }
+            });
+
+            showToast(correct ? 'Correct!' : 'Incorrect. Try again.', correct ? 'success' : 'error');
+        }
+
+        // Show answer
+        function showAnswer() {
+            outputs.forEach(output => {
+                const expectedOutput = calculateExpectedOutput(output);
+                output.value = expectedOutput;
+                output.square.fill(output.value ? COLORS.signalOne.fill : COLORS.signalZero.fill)
+                    .stroke({ color: output.value ? COLORS.signalOne.border : COLORS.signalZero.border, width: 2 });
+                output.text.text(output.value.toString());
+            });
+        }
+
+        // Calculate expected output
+        function calculateExpectedOutput(output) {
+            const connection = connections.find(conn =>
+                conn.end.x === output.x - 22 && conn.end.y === output.y
+            );
+
+            return connection ? connection.value : 0;
+        }
+
+        // Randomize inputs
+        function randomizeInputs() {
+            inputs.forEach(input => {
+                if (!input.locked) {
+                    input.value = Math.random() < 0.5 ? 0 : 1;
+                    updateInput(input);
+                }
+            });
+            updateConnections();
+            updateOutputs();
+        }
+
+        // Navigate to next level
+        function nextLevel() {
+            if (currentLevel < levels.length - 1) {
+                currentLevel++;
+                loadLevel(currentLevel);
+                updateQuestionCount();
+            }
+        }
+
+        // Navigate to previous level
+        function previousLevel() {
+            if (currentLevel > 0) {
+                currentLevel--;
+                loadLevel(currentLevel);
+                updateQuestionCount();
+            }
+        }
+
+        // Update question count display
+        function updateQuestionCount() {
+            document.getElementById('question-count').textContent =
+                `Question ${currentLevel + 1} of ${levels.length}`;
+        }
+
+        // Show toast message
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Initialize the game
+        init();
+    </script>
+</body>
+
+</html>
